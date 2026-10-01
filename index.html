@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TRTC Taipei Metro OCC - Cyberpunk Command Center</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Three.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- OrbitControls -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Inter:wght@300;400;600;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-dark: #040914;
+            --panel-bg: rgba(6, 15, 30, 0.82);
+            --panel-border: rgba(0, 240, 255, 0.25);
+            --neon-red: #ff2a55;
+            --neon-blue: #00bfff;
+            --neon-green: #00ff66;
+            --neon-orange: #ff9900;
+            --neon-brown: #cc66ff;
+            --neon-cyan: #00f0ff;
+            --neon-yellow: #ffee00;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: #d1d5db;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .font-tech {
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        .font-cyber {
+            font-family: 'Chakra Petch', sans-serif;
+        }
+
+        /* Glassmorphism Panel */
+        .cyber-panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            backdrop-filter: blur(8px);
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.08), inset 0 0 15px rgba(0, 240, 255, 0.05);
+            border-radius: 6px;
+        }
+
+        .cyber-button {
+            background: rgba(0, 240, 255, 0.08);
+            border: 1px solid rgba(0, 240, 255, 0.4);
+            color: var(--neon-cyan);
+            transition: all 0.2s ease;
+            clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+        }
+
+        .cyber-button:hover {
+            background: rgba(0, 240, 255, 0.25);
+            box-shadow: 0 0 12px rgba(0, 240, 255, 0.6);
+            color: #fff;
+        }
+
+        .cyber-button.active {
+            background: var(--neon-cyan);
+            color: #000;
+            font-weight: bold;
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.8);
+        }
+
+        .cyber-button-danger {
+            background: rgba(255, 42, 85, 0.15);
+            border: 1px solid rgba(255, 42, 85, 0.6);
+            color: var(--neon-red);
+        }
+
+        .cyber-button-danger:hover {
+            background: rgba(255, 42, 85, 0.4);
+            box-shadow: 0 0 15px rgba(255, 42, 85, 0.8);
+            color: #fff;
+        }
+
+        /* Scanlines Overlay */
+        .scanlines {
+            background: linear-gradient(
+                rgba(18, 16, 16, 0) 50%, 
+                rgba(0, 0, 0, 0.35) 50%
+            ), linear-gradient(
+                90deg,
+                rgba(255, 0, 0, 0.03),
+                rgba(0, 255, 0, 0.01),
+                rgba(0, 0, 255, 0.03)
+            );
+            background-size: 100% 3px, 6px 100%;
+            pointer-events: none;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 240, 255, 0.4);
+            border-radius: 2px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--neon-cyan);
+        }
+
+        /* Pulse animations */
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 1; filter: drop-shadow(0 0 8px currentColor); }
+            50% { opacity: 0.4; filter: drop-shadow(0 0 2px currentColor); }
+        }
+        .animate-pulse-glow {
+            animation: pulse-glow 1.5s infinite ease-in-out;
+        }
+
+        /* 3D Label overlay */
+        .station-label-hud {
+            position: absolute;
+            transform: translate(-50%, -100%);
+            color: #fff;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 10px;
+            padding: 2px 6px;
+            background: rgba(4, 9, 20, 0.85);
+            border: 1px solid var(--neon-cyan);
+            border-radius: 3px;
+            pointer-events: none;
+            white-space: nowrap;
+            transition: opacity 0.2s;
+            box-shadow: 0 0 8px rgba(0, 240, 255, 0.3);
+        }
+
+        .defcon-active {
+            animation: defcon-flash 0.8s infinite alternate;
+        }
+        @keyframes defcon-flash {
+            0% { border-color: rgba(255, 42, 85, 0.3); box-shadow: inset 0 0 10px rgba(255, 42, 85, 0.1); }
+            100% { border-color: rgba(255, 42, 85, 1); box-shadow: inset 0 0 30px rgba(255, 42, 85, 0.4); }
+        }
+    </style>
+</head>
+<body class="w-screen h-screen relative flex flex-col justify-between p-2 select-none">
+
+    <!-- Top Bar Header -->
+    <header class="cyber-panel w-full py-2 px-4 flex flex-wrap items-center justify-between z-20 gap-2 border-b">
+        <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-subway text-cyan-400 text-xl animate-pulse"></i>
+                <h1 class="font-cyber text-lg font-bold tracking-wider text-white">TRTC <span class="text-cyan-400">TAIPEI METRO</span> OCC</h1>
+            </div>
+            <span class="bg-cyan-950 text-cyan-400 border border-cyan-800 text-xs px-2 py-0.5 rounded font-tech">SYSTEM v4.02 // WARP-READY</span>
+        </div>
+
+        <!-- Center Quick Telemetry -->
+        <div class="hidden lg:flex items-center gap-6 font-tech text-xs">
+            <div class="flex items-center gap-2">
+                <span class="text-gray-400">CBTC LINK:</span>
+                <span class="text-green-400 font-bold flex items-center gap-1">
+                    <span class="w-2 h-2 rounded-full bg-green-400 inline-block animate-ping"></span> 1.2ms
+                </span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="text-gray-400">ACTIVE TRAINS:</span>
+                <span class="text-cyan-400 font-bold" id="total-trains-count">10 UNITS</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="text-gray-400">NETWORK SPEED:</span>
+                <span class="text-yellow-400 font-bold font-tech" id="global-speed-indicator">1.0x NORMAL</span>
+            </div>
+        </div>
+
+        <!-- Right Controls & Clock -->
+        <div class="flex items-center gap-3">
+            <button id="btn-defcon" class="cyber-button-danger text-xs font-tech px-3 py-1.5 flex items-center gap-2 font-bold uppercase rounded">
+                <i class="fa-solid fa-triangle-exclamation"></i> DEFCON 1
+            </button>
+
+            <button id="btn-audio" class="cyber-button text-xs font-tech px-3 py-1.5 flex items-center gap-1 rounded">
+                <i class="fa-solid fa-volume-high" id="audio-icon"></i> <span id="audio-status">AUDIO ON</span>
+            </button>
+
+            <div class="font-tech text-xs text-right border-l border-cyan-900 pl-3">
+                <div class="text-cyan-400 font-bold" id="live-clock">00:00:00 UTC+8</div>
+                <div class="text-gray-500 text-[10px]" id="live-date">2026-09-24</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Speed & Camera Control Bar -->
+    <div class="absolute top-16 left-1/2 -translate-x-1/2 z-20 flex flex-wrap items-center gap-2 bg-slate-950/90 border border-cyan-500/40 p-1.5 rounded-lg shadow-2xl backdrop-blur-md">
+        <span class="font-tech text-xs text-cyan-400 font-bold px-2 flex items-center gap-1">
+            <i class="fa-solid fa-gauge-high"></i> SPEED MULTIPLIER:
+        </span>
+        
+        <div class="flex items-center gap-1 bg-black/50 p-1 rounded border border-slate-800">
+            <button class="speed-btn cyber-button active text-xs font-tech px-2.5 py-1" data-speed="1">1x</button>
+            <button class="speed-btn cyber-button text-xs font-tech px-2.5 py-1" data-speed="2">2x</button>
+            <button class="speed-btn cyber-button text-xs font-tech px-2.5 py-1" data-speed="5">5x FAST</button>
+            <button class="speed-btn cyber-button text-xs font-tech px-2.5 py-1 text-yellow-400 font-bold" data-speed="10">10x WARP</button>
+            <button class="speed-btn cyber-button text-xs font-tech px-2.5 py-1 text-red-500 font-bold" data-speed="20">20x HYPER</button>
+        </div>
+
+        <button id="btn-ebrake" class="cyber-button-danger text-xs font-tech px-3 py-1 font-bold flex items-center gap-1">
+            <i class="fa-solid fa-[#000]"></i> [EB] EMERGENCY BRAKE
+        </button>
+
+        <div class="h-4 w-px bg-slate-700 mx-1"></div>
+
+        <span class="font-tech text-xs text-cyan-400 font-bold px-1">CAM:</span>
+        <button id="cam-orbit" class="cyber-button active text-xs font-tech px-2 py-1"><i class="fa-solid fa-cube"></i> 3D</button>
+        <button id="cam-top" class="cyber-button text-xs font-tech px-2 py-1"><i class="fa-solid fa-map"></i> TOP</button>
+        <button id="cam-chase" class="cyber-button text-xs font-tech px-2 py-1"><i class="fa-solid fa-video"></i> CHASE</button>
+        <button id="cam-hub" class="cyber-button text-xs font-tech px-2 py-1"><i class="fa-solid fa-bullseye"></i> HUB</button>
+    </div>
+
+    <!-- Main Content Area with WebGL Container -->
+    <main class="relative w-full h-[calc(100vh-140px)] my-1 overflow-hidden rounded-md border border-cyan-900/50">
+        <!-- Three.js Canvas Container -->
+        <div id="webgl-container" class="w-full h-full absolute inset-0 cursor-grab active:cursor-grabbing"></div>
+
+        <!-- Overlay HUD Canvas for labels -->
+        <div id="hud-overlay" class="absolute inset-0 pointer-events-none overflow-hidden"></div>
+
+        <!-- Scanlines FX -->
+        <div class="scanlines absolute inset-0 pointer-events-none opacity-40"></div>
+
+        <!-- LEFT PANEL: Telemetry & Train Monitor -->
+        <aside class="absolute top-3 left-3 w-80 max-h-[calc(100%-24px)] flex flex-col gap-3 z-10 overflow-y-auto pr-1">
+            
+            <!-- Train Selection Card -->
+            <div class="cyber-panel p-3">
+                <div class="flex items-center justify-between border-b border-cyan-900/60 pb-1.5 mb-2">
+                    <span class="font-tech text-xs font-bold text-cyan-400 flex items-center gap-1.5">
+                        <i class="fa-solid fa-train text-cyan-400"></i> TRAIN TELEMETRY UNIT
+                    </span>
+                    <span class="text-[10px] font-tech text-gray-400" id="selected-train-id">TR-R01</span>
+                </div>
+
+                <div class="mb-3">
+                    <label class="text-[10px] font-tech text-gray-400 mb-1 block">SELECT ACTIVE TRAIN</label>
+                    <select id="train-selector" class="w-full bg-slate-900 border border-cyan-800 text-cyan-300 font-tech text-xs p-1.5 rounded outline-none focus:border-cyan-400">
+                        <!-- Populated by JS -->
+                    </select>
+                </div>
+
+                <!-- Live Speed Gauge -->
+                <div class="flex items-center justify-between bg-slate-950/80 p-2 rounded border border-cyan-900/40 mb-3">
+                    <div class="flex flex-col">
+                        <span class="text-[10px] font-tech text-gray-400">CURRENT SPEED</span>
+                        <div class="flex items-baseline gap-1">
+                            <span class="font-tech text-2xl font-bold text-white" id="telemetry-speed">82.4</span>
+                            <span class="font-tech text-xs text-cyan-400">KM/H</span>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-[10px] font-tech text-gray-400">MODE</span>
+                        <div class="font-tech text-xs font-bold text-green-400 flex items-center gap-1" id="telemetry-mode">
+                            <i class="fa-solid fa-robot"></i> ATO AUTO
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Passenger Load & Power Meters -->
+                <div class="space-y-2 font-tech text-xs">
+                    <div>
+                        <div class="flex justify-between text-[10px] text-gray-400 mb-0.5">
+                            <span>PASSENGER LOAD DENSITY</span>
+                            <span id="load-pct-text" class="text-cyan-300">68%</span>
+                        </div>
+                        <div class="w-full bg-slate-900 rounded-full h-2 overflow-hidden border border-slate-800">
+                            <div id="load-bar" class="bg-cyan-400 h-full transition-all duration-300" style="width: 68%;"></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-[10px] text-gray-400 mb-0.5">
+                            <span>TRACTION POWER MW</span>
+                            <span id="power-mw-text" class="text-yellow-400">3.4 MW</span>
+                        </div>
+                        <div class="w-full bg-slate-900 rounded-full h-2 overflow-hidden border border-slate-800">
+                            <div id="power-bar" class="bg-yellow-400 h-full transition-all duration-300" style="width: 55%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 text-[10px] pt-1">
+                        <div class="bg-slate-950 p-1.5 rounded border border-slate-800">
+                            <span class="text-gray-500 block">BRAKE PRESS.</span>
+                            <span id="brake-press" class="text-cyan-300 font-bold">480 kPa</span>
+                        </div>
+                        <div class="bg-slate-950 p-1.5 rounded border border-slate-800">
+                            <span class="text-gray-500 block">ATC FREQ.</span>
+                            <span id="atc-freq" class="text-green-400 font-bold">464.20 MHz</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Radar / Sonar Sector Scanner Card -->
+            <div class="cyber-panel p-3">
+                <div class="flex items-center justify-between border-b border-cyan-900/60 pb-1.5 mb-2">
+                    <span class="font-tech text-xs font-bold text-cyan-400 flex items-center gap-1">
+                        <i class="fa-solid fa-radar"></i> SECTOR RADAR SCANNER
+                    </span>
+                    <span class="text-[10px] font-tech text-green-400 animate-pulse">● LIVE 360°</span>
+                </div>
+                <div class="relative w-full aspect-square bg-slate-950 rounded flex items-center justify-center border border-cyan-950 overflow-hidden">
+                    <canvas id="radar-canvas" class="w-full h-full"></canvas>
+                </div>
+            </div>
+
+        </aside>
+
+        <!-- RIGHT PANEL: CCTV & Power Grid Matrix -->
+        <aside class="absolute top-3 right-3 w-80 max-h-[calc(100%-24px)] flex flex-col gap-3 z-10 overflow-y-auto pl-1">
+            
+            <!-- CCTV Simulation Card -->
+            <div class="cyber-panel p-3">
+                <div class="flex items-center justify-between border-b border-cyan-900/60 pb-1.5 mb-2">
+                    <span class="font-tech text-xs font-bold text-cyan-400 flex items-center gap-1">
+                        <i class="fa-solid fa-video"></i> CAM-01: TAIPEI MAIN HUB
+                    </span>
+                    <span class="text-[10px] font-tech text-red-500 animate-pulse">● REC</span>
+                </div>
+
+                <!-- Simulated CCTV Video Box -->
+                <div class="relative w-full h-36 bg-black rounded overflow-hidden border border-cyan-900/80 flex flex-col justify-between p-2">
+                    <canvas id="cctv-canvas" class="absolute inset-0 w-full h-full opacity-60"></canvas>
+                    <div class="relative z-10 flex justify-between text-[10px] font-tech text-green-400 bg-black/60 px-1 rounded">
+                        <span>FPS: 60.0</span>
+                        <span>IR DENSITY SCAN</span>
+                    </div>
+                    <div class="relative z-10 text-[10px] font-tech text-cyan-300 bg-black/60 px-1 rounded flex justify-between">
+                        <span>PLATFORM 1 - BANNAN</span>
+                        <span id="cctv-crowd-status" class="text-yellow-400">MODERATE (64%)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Substation Power Matrix -->
+            <div class="cyber-panel p-3">
+                <div class="flex items-center justify-between border-b border-cyan-900/60 pb-1.5 mb-2">
+                    <span class="font-tech text-xs font-bold text-cyan-400 flex items-center gap-1">
+                        <i class="fa-solid fa-bolt"></i> SUBSTATION POWER GRID
+                    </span>
+                    <span class="text-[10px] font-tech text-cyan-300">750V DC</span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 text-xs font-tech">
+                    <div class="bg-slate-950/80 p-2 rounded border border-green-500/30">
+                        <div class="flex justify-between text-[10px] text-gray-400">
+                            <span>SS-01 (TAMSUI)</span>
+                            <span class="text-green-400">OK</span>
+                        </div>
+                        <div class="text-sm font-bold text-white mt-1">752 V</div>
+                    </div>
+                    <div class="bg-slate-950/80 p-2 rounded border border-green-500/30">
+                        <div class="flex justify-between text-[10px] text-gray-400">
+                            <span>SS-02 (MAIN)</span>
+                            <span class="text-green-400">OK</span>
+                        </div>
+                        <div class="text-sm font-bold text-white mt-1">748 V</div>
+                    </div>
+                    <div class="bg-slate-950/80 p-2 rounded border border-yellow-500/30">
+                        <div class="flex justify-between text-[10px] text-gray-400">
+                            <span>SS-03 (BANNAN)</span>
+                            <span class="text-yellow-400">HIGH</span>
+                        </div>
+                        <div class="text-sm font-bold text-white mt-1">765 V</div>
+                    </div>
+                    <div class="bg-slate-950/80 p-2 rounded border border-green-500/30">
+                        <div class="flex justify-between text-[10px] text-gray-400">
+                            <span>SS-04 (XINDIAN)</span>
+                            <span class="text-green-400">OK</span>
+                        </div>
+                        <div class="text-sm font-bold text-white mt-1">750 V</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Oscilloscope Canvas -->
+            <div class="cyber-panel p-3">
+                <div class="flex items-center justify-between border-b border-cyan-900/60 pb-1.5 mb-2">
+                    <span class="font-tech text-xs font-bold text-cyan-400 flex items-center gap-1">
+                        <i class="fa-solid fa-wave-square"></i> CBTC SIGNAL WAVEFORM
+                    </span>
+                    <span class="text-[10px] font-tech text-gray-400">5.8 GHz</span>
+                </div>
+                <div class="w-full h-16 bg-slate-950 rounded border border-cyan-950 overflow-hidden">
+                    <canvas id="scope-canvas" class="w-full h-full"></canvas>
+                </div>
+            </div>
+
+        </aside>
+    </main>
+
+    <!-- Bottom Systems Logs & Events Bar -->
+    <footer class="cyber-panel w-full py-2 px-3 flex flex-col md:flex-row items-center justify-between gap-3 z-20 text-xs font-tech">
+        <div class="flex items-center gap-2 text-cyan-400 font-bold whitespace-nowrap">
+            <i class="fa-solid fa-terminal"></i>
+            <span>SYSTEM LOGS:</span>
+        </div>
+
+        <div id="log-feed" class="w-full overflow-hidden whitespace-nowrap text-gray-300 bg-slate-950/80 px-3 py-1 rounded border border-cyan-900/40 h-7 flex items-center">
+            <span class="text-green-400 font-bold mr-2">[INFO]</span>
+            <span id="log-message">Initializing Taipei Metro OCC 3D Network Core Architecture...</span>
+        </div>
+
+        <div class="flex items-center gap-2 whitespace-nowrap text-[11px] text-gray-400">
+            <span>NETWORK HEALTH: <strong class="text-green-400">99.8%</strong></span>
+            <span>|</span>
+            <span>POWER GRID: <strong class="text-cyan-400">NOMINAL</strong></span>
+        </div>
+    </footer>
+
+    <script>
+        // --- Web Audio Synthesizer ---
+        class AudioSynth {
+            constructor() {
+                this.ctx = null;
+                this.enabled = true;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            }
+
+            playBeep(freq = 800, duration = 0.08, type = 'sine') {
+                if (!this.enabled) return;
+                this.init();
+                try {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = type;
+                    osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                    gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + duration);
+                } catch (e) {}
+            }
+
+            playSpeedWarpSound(speed) {
+                if (!this.enabled) return;
+                this.init();
+                try {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sawtooth';
+                    const baseFreq = 200 + speed * 60;
+                    osc.frequency.setValueAtTime(baseFreq, this.ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(baseFreq * 2, this.ctx.currentTime + 0.3);
+                    
+                    gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.35);
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + 0.35);
+                } catch (e) {}
+            }
+
+            playSiren() {
+                if (!this.enabled) return;
+                this.init();
+                try {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(400, this.ctx.currentTime);
+                    osc.frequency.linearRampToValueAtTime(900, this.ctx.currentTime + 0.25);
+                    osc.frequency.linearRampToValueAtTime(400, this.ctx.currentTime + 0.5);
+
+                    gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.5);
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + 0.5);
+                } catch (e) {}
+            }
+        }
+
+        const synth = new AudioSynth();
+
+        // --- Metro Network Topology Data ---
+        const LINE_COLORS = {
+            R: 0xff2a55,  // Red Line
+            BL: 0x00bfff, // Blue Line
+            G: 0x00ff66,  // Green Line
+            O: 0xff9900,  // Orange Line
+            BR: 0xcc66ff  // Brown / Wenhu Line
+        };
+
+        // Simplified 3D coordinates layout for Taipei Metro
+        const STATIONS = [
+            // Red Line (Tamsui-Xinyi)
+            { id: 'R16', name: 'Tamsui', pos: [-55, 0, -50], line: 'R' },
+            { id: 'R13', name: 'Beitou', pos: [-35, 0, -32], line: 'R' },
+            { id: 'R11', name: 'Yuanshan', pos: [-15, 0, -18], line: 'R' },
+            { id: 'R10', name: 'Zhongshan', pos: [0, 0, -10], line: 'R' },
+            { id: 'R08', name: 'Taipei Main Hub', pos: [0, 0, 0], line: 'R', hub: true },
+            { id: 'R07', name: 'Chiang Kai-shek', pos: [0, 0, 15], line: 'R' },
+            { id: 'R05', name: 'Daan', pos: [20, 0, 15], line: 'R' },
+            { id: 'R02', name: 'Xiangshan', pos: [45, 0, 15], line: 'R' },
+
+            // Blue Line (Bannan)
+            { id: 'BL05', name: 'Dingpu', pos: [-50, 0, 35], line: 'BL' },
+            { id: 'BL10', name: 'Longshan Temple', pos: [-20, 0, 0], line: 'BL' },
+            { id: 'BL11', name: 'Ximen', pos: [-10, 0, 0], line: 'BL', hub: true },
+            // Taipei Main Hub (R08 / BL12)
+            { id: 'BL15', name: 'Zhongxiao Fuxing', pos: [20, 0, 0], line: 'BL', hub: true },
+            { id: 'BL18', name: 'TPE City Hall', pos: [40, 0, 0], line: 'BL' },
+            { id: 'BL23', name: 'Nangang Hub', pos: [60, 0, -5], line: 'BL' },
+
+            // Green Line (Songshan-Xindian)
+            { id: 'G19', name: 'Songshan', pos: [40, 0, -18], line: 'G' },
+            { id: 'G15', name: 'Nanjing Fuxing', pos: [20, 0, -10], line: 'G' },
+            { id: 'G14', name: 'Songjiang Nanjing', pos: [8, 0, -10], line: 'G' },
+            // Zhongshan (G13 / R10)
+            // Ximen (G12 / BL11)
+            { id: 'G08', name: 'Guting', pos: [0, 0, 25], line: 'G' },
+            { id: 'G01', name: 'Xindian', pos: [10, 0, 55], line: 'G' },
+
+            // Orange Line (Zhonghe-Xinlu)
+            { id: 'O01', name: 'Nanshan', pos: [-15, 0, 40], line: 'O' },
+            // CKS Memorial (R07)
+            { id: 'O08', name: 'Daqiaotou', pos: [-10, 0, -20], line: 'O' },
+            { id: 'O19', name: 'Luzhou', pos: [-30, 0, -35], line: 'O' },
+
+            // Brown Line (Wenhu)
+            { id: 'BR09', name: 'Daan Park', pos: [20, 0, 30], line: 'BR' },
+            // Daan (BR10 / R05)
+            // Zhongxiao Fuxing (BR11 / BL15)
+            // Nanjing Fuxing (BR12 / G15)
+            { id: 'BR13', name: 'Songshan Airport', pos: [20, 0, -30], line: 'BR' },
+            { id: 'BR24', name: 'Nangang Software', pos: [55, 0, -20], line: 'BR' }
+        ];
+
+        // Routes defined by station ID sequences
+        const ROUTES = {
+            R: ['R16', 'R13', 'R11', 'R10', 'R08', 'R07', 'R05', 'R02'],
+            BL: ['BL05', 'BL10', 'BL11', 'R08', 'BL15', 'BL18', 'BL23'],
+            G: ['G19', 'G15', 'G14', 'R10', 'BL11', 'G08', 'G01'],
+            O: ['O01', 'R07', 'G14', 'O08', 'O19'],
+            BR: ['BR09', 'R05', 'BL15', 'G15', 'BR13', 'BR24']
+        };
+
+        // --- 3D Scene Global Variables ---
+        let scene, camera, renderer, controls;
+        let trainObjects = [];
+        let globalSpeedMultiplier = 1.0;
+        let selectedTrainIndex = 0;
+        let cameraMode = 'orbit'; // orbit, top, chase, hub
+        let defconActive = false;
+
+        const container = document.getElementById('webgl-container');
+
+        function init3D() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x040914);
+            scene.fog = new THREE.FogExp2(0x040914, 0.008);
+
+            camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.set(0, 70, 90);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            container.appendChild(renderer.domElement);
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.maxPolarAngle = Math.PI / 2 - 0.02; // Don't go below ground
+
+            // Ambient & Directional Lights
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+
+            const dirLight = new THREE.DirectionalLight(0x00f0ff, 1.2);
+            dirLight.position.set(30, 80, 50);
+            scene.add(dirLight);
+
+            const pointLight = new THREE.PointLight(0xff2a55, 1.5, 100);
+            pointLight.position.set(0, 10, 0);
+            scene.add(pointLight);
+
+            // Cyberpunk Grid Ground
+            const gridHelper = new THREE.GridHelper(200, 50, 0x00f0ff, 0x0a2540);
+            gridHelper.position.y = -0.5;
+            scene.add(gridHelper);
+
+            // Build Network Tracks & Stations
+            buildNetwork();
+
+            // Spawn Trains
+            spawnTrains();
+
+            // Handle Window Resize
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        // Helper to find station position by ID
+        function getStationPos(id) {
+            const st = STATIONS.find(s => s.id === id);
+            return st ? new THREE.Vector3(...st.pos) : new THREE.Vector3(0, 0, 0);
+        }
+
+        function buildNetwork() {
+            // Draw Glowing Tube Lines for Routes
+            Object.keys(ROUTES).forEach(lineKey => {
+                const stationIds = ROUTES[lineKey];
+                const points = stationIds.map(id => getStationPos(id));
+
+                // Create smooth Curve
+                const curve = new THREE.CatmullRomCurve3(points, false, 'catmullrom', 0.2);
+                const geometry = new THREE.TubeGeometry(curve, 64, 0.4, 8, false);
+                const material = new THREE.MeshBasicMaterial({
+                    color: LINE_COLORS[lineKey],
+                    wireframe: false,
+                    transparent: true,
+                    opacity: 0.85
+                });
+                const tube = new THREE.Mesh(geometry, material);
+                scene.add(tube);
+
+                // Add outer glowing line shell
+                const glowGeo = new THREE.TubeGeometry(curve, 64, 0.8, 8, false);
+                const glowMat = new THREE.MeshBasicMaterial({
+                    color: LINE_COLORS[lineKey],
+                    transparent: true,
+                    opacity: 0.2,
+                    wireframe: true
+                });
+                scene.add(new THREE.Mesh(glowGeo, glowMat));
+            });
+
+            // Draw Station Hubs Nodes
+            STATIONS.forEach(st => {
+                const pos = new THREE.Vector3(...st.pos);
+                
+                // Outer ring
+                const ringGeo = new THREE.RingGeometry(1.2, 1.8, 16);
+                const ringMat = new THREE.MeshBasicMaterial({
+                    color: st.hub ? 0xffff00 : LINE_COLORS[st.line],
+                    side: THREE.DoubleSide,
+                    transparent: true,
+                    opacity: 0.9
+                });
+                const ring = new THREE.Mesh(ringGeo, ringMat);
+                ring.rotation.x = Math.PI / 2;
+                ring.position.copy(pos);
+                ring.position.y = 0.1;
+                scene.add(ring);
+
+                // Center Station Cylinder
+                const cylGeo = new THREE.CylinderGeometry(0.8, 0.8, st.hub ? 3 : 1.5, 12);
+                const cylMat = new THREE.MeshPhongMaterial({
+                    color: st.hub ? 0xffea00 : LINE_COLORS[st.line],
+                    emissive: st.hub ? 0x665500 : 0x111111,
+                    shininess: 100
+                });
+                const cyl = new THREE.Mesh(cylGeo, cylMat);
+                cyl.position.copy(pos);
+                cyl.position.y = (st.hub ? 3 : 1.5) / 2;
+                scene.add(cyl);
+            });
+        }
+
+        function spawnTrains() {
+            const trainDataList = [
+                { id: 'TR-R01', line: 'R', speed: 0.0015 },
+                { id: 'TR-R02', line: 'R', speed: 0.0018 },
+                { id: 'TR-BL01', line: 'BL', speed: 0.0020 },
+                { id: 'TR-BL02', line: 'BL', speed: 0.0014 },
+                { id: 'TR-G01', line: 'G', speed: 0.0016 },
+                { id: 'TR-G02', line: 'G', speed: 0.0019 },
+                { id: 'TR-O01', line: 'O', speed: 0.0017 },
+                { id: 'TR-BR01', line: 'BR', speed: 0.0022 }
+            ];
+
+            const selector = document.getElementById('train-selector');
+            selector.innerHTML = '';
+
+            trainDataList.forEach((tData, index) => {
+                const stationIds = ROUTES[tData.line];
+                const points = stationIds.map(id => getStationPos(id));
+                const curve = new THREE.CatmullRomCurve3(points, false, 'catmullrom', 0.2);
+
+                // Create Train Metallic Mesh Block
+                const group = new THREE.Group();
+                
+                const bodyGeo = new THREE.BoxGeometry(1.6, 1.2, 4);
+                const bodyMat = new THREE.MeshPhongMaterial({
+                    color: 0x1e293b,
+                    emissive: LINE_COLORS[tData.line],
+                    emissiveIntensity: 0.4,
+                    metalness: 0.8,
+                    roughness: 0.2
+                });
+                const body = new THREE.Mesh(bodyGeo, bodyMat);
+                body.position.y = 0.8;
+                group.add(body);
+
+                // Front Headlight Beam
+                const light = new THREE.SpotLight(0x00f0ff, 3, 15, Math.PI / 6, 0.5);
+                light.position.set(0, 1, 1.8);
+                light.target.position.set(0, 0, 10);
+                group.add(light);
+                group.add(light.target);
+
+                scene.add(group);
+
+                const trainObj = {
+                    id: tData.id,
+                    line: tData.line,
+                    group: group,
+                    curve: curve,
+                    progress: Math.random(), // Start at random position along track
+                    baseSpeed: tData.speed,
+                    currentSpeedKm: 0,
+                    direction: 1
+                };
+
+                trainObjects.push(trainObj);
+
+                // Populate Dropdown
+                const opt = document.createElement('option');
+                opt.value = index;
+                opt.textContent = `${tData.id} (${tData.line}-LINE)`;
+                selector.appendChild(opt);
+            });
+
+            document.getElementById('total-trains-count').textContent = `${trainObjects.length} UNITS`;
+        }
+
+        let clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const delta = clock.getDelta();
+
+            // Update Trains Position along Spline curves
+            trainObjects.forEach((train, idx) => {
+                // Apply Warp Speed Multiplier
+                const effectiveSpeed = train.baseSpeed * globalSpeedMultiplier;
+                
+                train.progress += effectiveSpeed * train.direction * delta * 30;
+                
+                // Bounce back at endpoints
+                if (train.progress >= 1.0) {
+                    train.progress = 1.0;
+                    train.direction = -1;
+                } else if (train.progress <= 0) {
+                    train.progress = 0;
+                    train.direction = 1;
+                }
+
+                // Get 3D Point on Curve
+                const point = train.curve.getPointAt(train.progress);
+                const tangent = train.curve.getTangentAt(train.progress);
+
+                train.group.position.copy(point);
+                
+                // Orient train towards movement direction
+                const lookTarget = point.clone().add(tangent.clone().multiplyScalar(train.direction));
+                train.group.lookAt(lookTarget);
+
+                // Calculate Simulated Speed
+                train.currentSpeedKm = (effectiveSpeed * 45000).toFixed(1);
+            });
+
+            // Update Camera based on Mode
+            updateCameraMode();
+
+            // Render HUD overlay markers
+            updateHudOverlay();
+
+            // Render Three.js Scene
+            controls.update();
+            renderer.render(scene, camera);
+
+            // Update UI Telemetry
+            updateTelemetryUI();
+        }
+
+        function updateCameraMode() {
+            if (cameraMode === 'chase' && trainObjects[selectedTrainIndex]) {
+                const targetTrain = trainObjects[selectedTrainIndex].group;
+                const offset = new THREE.Vector3(0, 8, -15).applyQuaternion(targetTrain.quaternion);
+                camera.position.lerp(targetTrain.position.clone().add(offset), 0.1);
+                controls.target.lerp(targetTrain.position, 0.1);
+            } else if (cameraMode === 'top') {
+                camera.position.lerp(new THREE.Vector3(0, 110, 0.1), 0.05);
+                controls.target.lerp(new THREE.Vector3(0, 0, 0), 0.05);
+            } else if (cameraMode === 'hub') {
+                const hubPos = getStationPos('R08');
+                camera.position.lerp(new THREE.Vector3(hubPos.x + 25, hubPos.y + 25, hubPos.z + 30), 0.05);
+                controls.target.lerp(hubPos, 0.05);
+            }
+        }
+
+        function updateHudOverlay() {
+            const overlay = document.getElementById('hud-overlay');
+            overlay.innerHTML = '';
+
+            STATIONS.filter(s => s.hub).forEach(st => {
+                const pos = new THREE.Vector3(...st.pos);
+                pos.y += 3;
+                
+                // Project 3D pos to 2D Screen
+                pos.project(camera);
+
+                const x = (pos.x * .5 + .5) * container.clientWidth;
+                const y = (-(pos.y * .5) + .5) * container.clientHeight;
+
+                // Only render if in front of camera
+                if (pos.z < 1) {
+                    const label = document.createElement('div');
+                    label.className = 'station-label-hud';
+                    label.style.left = `${x}px`;
+                    label.style.top = `${y}px`;
+                    label.innerHTML = `<i class="fa-solid fa-location-dot text-yellow-400 mr-1"></i>${st.name}`;
+                    overlay.appendChild(label);
+                }
+            });
+        }
+
+        function onWindowResize() {
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        }
+
+        // --- Dynamic Telemetry UI Updates ---
+        function updateTelemetryUI() {
+            const currentTrain = trainObjects[selectedTrainIndex];
+            if (!currentTrain) return;
+
+            document.getElementById('selected-train-id').textContent = currentTrain.id;
+            document.getElementById('telemetry-speed').textContent = currentTrain.currentSpeedKm;
+            
+            // Dynamic load and power simulation based on speed
+            const speedRatio = Math.min(parseFloat(currentTrain.currentSpeedKm) / 100, 2.0);
+            const loadPct = Math.round(50 + Math.sin(Date.now() * 0.001) * 20);
+            const powerMw = (2.1 + speedRatio * 1.8).toFixed(1);
+
+            document.getElementById('load-pct-text').textContent = `${loadPct}%`;
+            document.getElementById('load-bar').style.width = `${loadPct}%`;
+
+            document.getElementById('power-mw-text').textContent = `${powerMw} MW`;
+            document.getElementById('power-bar').style.width = `${Math.min(speedRatio * 50, 100)}%`;
+        }
+
+        // Canvas 1: Animated Radar / Sonar Scanner
+        const radarCanvas = document.getElementById('radar-canvas');
+        const rCtx = radarCanvas.getContext('2d');
+        let radarAngle = 0;
+
+        function drawRadar() {
+            radarCanvas.width = radarCanvas.clientWidth;
+            radarCanvas.height = radarCanvas.clientHeight;
+            const cx = radarCanvas.width / 2;
+            const cy = radarCanvas.height / 2;
+            const radius = Math.min(cx, cy) - 10;
+
+            rCtx.clearRect(0, 0, radarCanvas.width, radarCanvas.height);
+
+            // Concentric Rings
+            rCtx.strokeStyle = 'rgba(0, 240, 255, 0.2)';
+            rCtx.lineWidth = 1;
+            for (let r = 0.25; r <= 1; r += 0.25) {
+                rCtx.beginPath();
+                rCtx.arc(cx, cy, radius * r, 0, Math.PI * 2);
+                rCtx.stroke();
+            }
+
+            // Crosshair
+            rCtx.beginPath();
+            rCtx.moveTo(cx - radius, cy); rCtx.lineTo(cx + radius, cy);
+            rCtx.moveTo(cx, cy - radius); rCtx.lineTo(cx, cy + radius);
+            rCtx.stroke();
+
+            // Radar Sweep line
+            radarAngle += 0.03 * globalSpeedMultiplier;
+            rCtx.save();
+            rCtx.translate(cx, cy);
+            rCtx.rotate(radarAngle);
+            
+            const gradient = rCtx.createConicalGradient ? rCtx.createConicalGradient(0, 0, 0) : null;
+            rCtx.beginPath();
+            rCtx.moveTo(0, 0);
+            rCtx.arc(0, 0, radius, 0, Math.PI / 4);
+            rCtx.fillStyle = 'rgba(0, 240, 255, 0.15)';
+            rCtx.fill();
+
+            rCtx.beginPath();
+            rCtx.moveTo(0, 0);
+            rCtx.lineTo(radius, 0);
+            rCtx.strokeStyle = '#00f0ff';
+            rCtx.lineWidth = 1.5;
+            rCtx.stroke();
+            rCtx.restore();
+
+            // Draw Train Blips on Radar
+            trainObjects.forEach(t => {
+                const bx = cx + (t.group.position.x / 100) * radius;
+                const by = cy + (t.group.position.z / 100) * radius;
+                rCtx.fillStyle = '#ff2a55';
+                rCtx.beginPath();
+                rCtx.arc(bx, by, 3, 0, Math.PI * 2);
+                rCtx.fill();
+            });
+
+            requestAnimationFrame(drawRadar);
+        }
+
+        // Canvas 2: CCTV Simulation Matrix
+        const cctvCanvas = document.getElementById('cctv-canvas');
+        const cCtx = cctvCanvas.getContext('2d');
+
+        function drawCCTV() {
+            cctvCanvas.width = cctvCanvas.clientWidth;
+            cctvCanvas.height = cctvCanvas.clientHeight;
+
+            cCtx.fillStyle = '#000';
+            cCtx.fillRect(0, 0, cctvCanvas.width, cctvCanvas.height);
+
+            // Draw Wireframe Crowd silhouettes
+            cCtx.strokeStyle = 'rgba(0, 255, 100, 0.4)';
+            cCtx.lineWidth = 1;
+
+            const time = Date.now() * 0.002;
+            for (let i = 0; i < 15; i++) {
+                const px = (Math.sin(time + i) * 0.4 + 0.5) * cctvCanvas.width;
+                const py = (Math.cos(time * 0.8 + i) * 0.2 + 0.6) * cctvCanvas.height;
+
+                cCtx.beginPath();
+                cCtx.arc(px, py, 6, 0, Math.PI * 2);
+                cCtx.stroke();
+            }
+
+            requestAnimationFrame(drawCCTV);
+        }
+
+        // Canvas 3: Oscilloscope CBTC Signal
+        const scopeCanvas = document.getElementById('scope-canvas');
+        const sCtx = scopeCanvas.getContext('2d');
+        let scopeOffset = 0;
+
+        function drawScope() {
+            scopeCanvas.width = scopeCanvas.clientWidth;
+            scopeCanvas.height = scopeCanvas.clientHeight;
+
+            sCtx.clearRect(0, 0, scopeCanvas.width, scopeCanvas.height);
+            sCtx.strokeStyle = defconActive ? '#ff2a55' : '#00f0ff';
+            sCtx.lineWidth = 1.5;
+            sCtx.beginPath();
+
+            scopeOffset += 0.08 * globalSpeedMultiplier;
+            const midY = scopeCanvas.height / 2;
+
+            for (let x = 0; x < scopeCanvas.width; x++) {
+                const y = midY + Math.sin(x * 0.05 + scopeOffset) * 15 * Math.cos(x * 0.01);
+                if (x === 0) sCtx.moveTo(x, y);
+                else sCtx.lineTo(x, y);
+            }
+            sCtx.stroke();
+
+            requestAnimationFrame(drawScope);
+        }
+
+        // --- Interactive Event Handlers ---
+        document.addEventListener('DOMContentLoaded', () => {
+            init3D();
+            animate();
+            drawRadar();
+            drawCCTV();
+            drawScope();
+
+            // Speed Multipliers
+            document.querySelectorAll('.speed-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    
+                    globalSpeedMultiplier = parseFloat(btn.dataset.speed);
+                    document.getElementById('global-speed-indicator').textContent = `${globalSpeedMultiplier}x ${globalSpeedMultiplier > 1 ? 'FAST' : 'NORMAL'}`;
+                    
+                    synth.playSpeedWarpSound(globalSpeedMultiplier);
+                    logEvent('WARN', `Speed Multiplier adjusted to ${globalSpeedMultiplier}x WARP.`);
+                });
+            });
+
+            // Camera Controls
+            document.getElementById('cam-orbit').addEventListener('click', () => setCamMode('orbit', 'cam-orbit'));
+            document.getElementById('cam-top').addEventListener('click', () => setCamMode('top', 'cam-top'));
+            document.getElementById('cam-chase').addEventListener('click', () => setCamMode('chase', 'cam-chase'));
+            document.getElementById('cam-hub').addEventListener('click', () => setCamMode('hub', 'cam-hub'));
+
+            function setCamMode(mode, btnId) {
+                cameraMode = mode;
+                document.querySelectorAll('#cam-orbit, #cam-top, #cam-chase, #cam-hub').forEach(b => b.classList.remove('active'));
+                document.getElementById(btnId).classList.add('active');
+                synth.playBeep(900, 0.05);
+                logEvent('INFO', `Camera view switched to mode: ${mode.toUpperCase()}`);
+            }
+
+            // Emergency Brake Button
+            document.getElementById('btn-ebrake').addEventListener('click', () => {
+                globalSpeedMultiplier = 0;
+                document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
+                document.getElementById('global-speed-indicator').textContent = '0.0x [EB STOP]';
+                synth.playSiren();
+                logEvent('ALERT', 'EMERGENCY BRAKE ENGAGED! ALL TRAINS STOPPED IMMEDIATELY.');
+            });
+
+            // DEFCON Button
+            document.getElementById('btn-defcon').addEventListener('click', () => {
+                defconActive = !defconActive;
+                document.body.classList.toggle('defcon-active', defconActive);
+                synth.playSiren();
+                logEvent('CRITICAL', `DEFCON 1 PROTOCOL ${defconActive ? 'ACTIVATED' : 'DEACTIVATED'}.`);
+            });
+
+            // Audio Toggle
+            document.getElementById('btn-audio').addEventListener('click', () => {
+                synth.enabled = !synth.enabled;
+                document.getElementById('audio-status').textContent = synth.enabled ? 'AUDIO ON' : 'MUTED';
+                document.getElementById('audio-icon').className = synth.enabled ? 'fa-solid fa-volume-high' : 'fa-solid fa-volume-xmark';
+            });
+
+            // Train Selector Dropdown Change
+            document.getElementById('train-selector').addEventListener('change', (e) => {
+                selectedTrainIndex = parseInt(e.target.value);
+                synth.playBeep(1100, 0.05);
+            });
+
+            // Live Clock Update
+            setInterval(() => {
+                const now = new Date();
+                document.getElementById('live-clock').textContent = now.toTimeString().split(' ')[0] + ' UTC+8';
+                document.getElementById('live-date').textContent = now.toISOString().split('T')[0];
+            }, 1000);
+        });
+
+        // Event Logging Utility
+        function logEvent(type, msg) {
+            const logBox = document.getElementById('log-message');
+            const colorClass = type === 'CRITICAL' || type === 'ALERT' ? 'text-red-400 font-bold' : type === 'WARN' ? 'text-yellow-400' : 'text-green-400';
+            logBox.innerHTML = `<span class="${colorClass}">[${type}]</span> ${msg}`;
+        }
+    </script>
+</body>
+</html>
