@@ -1,1077 +1,651 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>114122101</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Three.js CDN -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <!-- OrbitControls -->
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Inter Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Inter:wght@300;400;600;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>慈濟大學 經營管理學系 | 機密情報與學院檔案</title>
+  <style>
+    :root {
+      --bg-dark: #080b10;
+      --bg-card: rgba(15, 23, 42, 0.85);
+      --gold-primary: #d4af37;
+      --gold-glow: #ffd700;
+      --cyan-tech: #00f3ff;
+      --cyan-dim: rgba(0, 243, 255, 0.15);
+      --text-bright: #f8fafc;
+      --text-muted: #94a3b8;
+      --border-magic: rgba(212, 175, 55, 0.35);
+      --font-title: 'Cinzel', 'Noto Serif TC', Georgia, serif;
+      --font-code: 'Fira Code', 'Courier New', monospace;
+    }
 
-    <style>
-        :root {
-            --bg-dark: #040914;
-            --panel-bg: rgba(6, 15, 30, 0.82);
-            --panel-border: rgba(0, 240, 255, 0.25);
-            --neon-red: #ff2a55;
-            --neon-blue: #00bfff;
-            --neon-green: #00ff66;
-            --neon-orange: #ff9900;
-            --neon-brown: #cc66ff;
-            --neon-cyan: #00f0ff;
-            --neon-yellow: #ffee00;
-        }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-        body {
-            background-color: var(--bg-dark);
-            color: #d1d5db;
-            font-family: 'Inter', sans-serif;
-            overflow: hidden;
-            user-select: none;
-        }
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-bright);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
 
-        .font-tech {
-            font-family: 'Share Tech Mono', monospace;
-        }
+    /* 背景粒子 Canvas */
+    #bg-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+    }
 
-        .font-cyber {
-            font-family: 'Chakra Petch', sans-serif;
-        }
+    /* 頂部導覽列 */
+    header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 100;
+      background: rgba(8, 11, 16, 0.9);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-magic);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
 
-        /* Glassmorphism Panel */
-        .cyber-panel {
-            background: var(--panel-bg);
-            border: 1px solid var(--panel-border);
-            backdrop-filter: blur(8px);
-            box-shadow: 0 0 15px rgba(0, 240, 255, 0.08), inset 0 0 15px rgba(0, 240, 255, 0.05);
-            border-radius: 6px;
-        }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: var(--font-title);
+      color: var(--gold-primary);
+      font-size: 1.25rem;
+      font-weight: bold;
+      letter-spacing: 2px;
+    }
 
-        .cyber-button {
-            background: rgba(0, 240, 255, 0.08);
-            border: 1px solid rgba(0, 240, 255, 0.4);
-            color: var(--neon-cyan);
-            transition: all 0.2s ease;
-            clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
-        }
+    .brand-icon {
+      width: 32px;
+      height: 32px;
+      border: 2px solid var(--gold-primary);
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      box-shadow: 0 0 10px var(--gold-glow);
+    }
 
-        .cyber-button:hover {
-            background: rgba(0, 240, 255, 0.25);
-            box-shadow: 0 0 12px rgba(0, 240, 255, 0.6);
-            color: #fff;
-        }
+    nav {
+      display: flex;
+      gap: 20px;
+    }
 
-        .cyber-button.active {
-            background: var(--neon-cyan);
-            color: #000;
-            font-weight: bold;
-            box-shadow: 0 0 15px rgba(0, 240, 255, 0.8);
-        }
+    nav a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: all 0.3s;
+      position: relative;
+      padding: 4px 8px;
+    }
 
-        .cyber-button-danger {
-            background: rgba(255, 42, 85, 0.15);
-            border: 1px solid rgba(255, 42, 85, 0.6);
-            color: var(--neon-red);
-        }
+    nav a:hover, nav a.active {
+      color: var(--cyan-tech);
+      text-shadow: 0 0 8px var(--cyan-tech);
+    }
 
-        .cyber-button-danger:hover {
-            background: rgba(255, 42, 85, 0.4);
-            box-shadow: 0 0 15px rgba(255, 42, 85, 0.8);
-            color: #fff;
-        }
+    nav a::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0%;
+      height: 2px;
+      background: var(--cyan-tech);
+      transition: width 0.3s;
+    }
 
-        /* Scanlines Overlay */
-        .scanlines {
-            background: linear-gradient(
-                rgba(18, 16, 16, 0) 50%, 
-                rgba(0, 0, 0, 0.35) 50%
-            ), linear-gradient(
-                90deg,
-                rgba(255, 0, 0, 0.03),
-                rgba(0, 255, 0, 0.01),
-                rgba(0, 0, 255, 0.03)
-            );
-            background-size: 100% 3px, 6px 100%;
-            pointer-events: none;
-        }
+    nav a:hover::after, nav a.active::after {
+      width: 100%;
+    }
 
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 4px;
-            height: 4px;
-        }
-        ::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.3);
-        }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(0, 240, 255, 0.4);
-            border-radius: 2px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--neon-cyan);
-        }
+    /* 主要容器 */
+    main {
+      position: relative;
+      z-index: 1;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 100px 24px 60px;
+    }
 
-        /* Pulse animations */
-        @keyframes pulse-glow {
-            0%, 100% { opacity: 1; filter: drop-shadow(0 0 8px currentColor); }
-            50% { opacity: 0.4; filter: drop-shadow(0 0 2px currentColor); }
-        }
-        .animate-pulse-glow {
-            animation: pulse-glow 1.5s infinite ease-in-out;
-        }
+    /* 主視覺區塊 */
+    .hero {
+      text-align: center;
+      padding: 60px 20px;
+      position: relative;
+      background: radial-gradient(circle at center, rgba(0, 243, 255, 0.08) 0%, transparent 70%);
+      border: 1px solid var(--border-magic);
+      border-radius: 16px;
+      margin-bottom: 60px;
+      box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.8);
+    }
 
-        /* 3D Label overlay */
-        .station-label-hud {
-            position: absolute;
-            transform: translate(-50%, -100%);
-            color: #fff;
-            font-family: 'Share Tech Mono', monospace;
-            font-size: 10px;
-            padding: 2px 6px;
-            background: rgba(4, 9, 20, 0.85);
-            border: 1px solid var(--neon-cyan);
-            border-radius: 3px;
-            pointer-events: none;
-            white-space: nowrap;
-            transition: opacity 0.2s;
-            box-shadow: 0 0 8px rgba(0, 240, 255, 0.3);
-        }
+    .hero-badge {
+      display: inline-block;
+      padding: 4px 16px;
+      border: 1px solid var(--cyan-tech);
+      color: var(--cyan-tech);
+      font-family: var(--font-code);
+      font-size: 0.85rem;
+      border-radius: 20px;
+      margin-bottom: 20px;
+      background: var(--cyan-dim);
+    }
 
-        .defcon-active {
-            animation: defcon-flash 0.8s infinite alternate;
-        }
-        @keyframes defcon-flash {
-            0% { border-color: rgba(255, 42, 85, 0.3); box-shadow: inset 0 0 10px rgba(255, 42, 85, 0.1); }
-            100% { border-color: rgba(255, 42, 85, 1); box-shadow: inset 0 0 30px rgba(255, 42, 85, 0.4); }
-        }
-    </style>
+    .hero h1 {
+      font-size: 3rem;
+      font-family: var(--font-title);
+      color: var(--gold-primary);
+      margin-bottom: 16px;
+      text-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
+      letter-spacing: 4px;
+    }
+
+    .hero p {
+      font-size: 1.15rem;
+      color: var(--text-muted);
+      max-width: 800px;
+      margin: 0 auto 30px;
+    }
+
+    /* 統計指標卡片 */
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-top: 30px;
+    }
+
+    .stat-item {
+      background: rgba(8, 11, 16, 0.6);
+      border: 1px solid var(--border-magic);
+      padding: 16px;
+      border-radius: 8px;
+    }
+
+    .stat-number {
+      font-family: var(--font-code);
+      font-size: 1.8rem;
+      color: var(--cyan-tech);
+      font-weight: bold;
+    }
+
+    .stat-label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    /* 區塊標題 */
+    .section-title {
+      font-family: var(--font-title);
+      font-size: 1.8rem;
+      color: var(--gold-primary);
+      margin-bottom: 30px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, var(--border-magic), transparent);
+    }
+
+    /* 網格系統 */
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 28px;
+      margin-bottom: 60px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 28px;
+      margin-bottom: 60px;
+    }
+
+    /* 卡片設計 */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-magic);
+      border-radius: 12px;
+      overflow: hidden;
+      position: relative;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(8px);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card:hover {
+      transform: translateY(-6px);
+      border-color: var(--cyan-tech);
+      box-shadow: 0 10px 30px rgba(0, 243, 255, 0.2);
+    }
+
+    .card-img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      border-bottom: 1px solid var(--border-magic);
+      filter: brightness(0.85) contrast(1.1);
+      transition: filter 0.3s, transform 0.5s;
+    }
+
+    .card:hover .card-img {
+      filter: brightness(1) contrast(1.2);
+      transform: scale(1.03);
+    }
+
+    .card-body {
+      padding: 24px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card-code {
+      font-family: var(--font-code);
+      font-size: 0.8rem;
+      color: var(--cyan-tech);
+      margin-bottom: 10px;
+    }
+
+    .card h3 {
+      font-size: 1.3rem;
+      color: var(--gold-primary);
+      margin-bottom: 12px;
+    }
+
+    .card p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      flex: 1;
+    }
+
+    /* 互動專業場域卡片 */
+    .facility-card {
+      cursor: pointer;
+    }
+
+    .facility-card .card-body::after {
+      content: '點擊解鎖情報 🔍';
+      display: block;
+      margin-top: 16px;
+      font-size: 0.8rem;
+      color: var(--cyan-tech);
+      text-align: right;
+      font-family: var(--font-code);
+    }
+
+    /* 標籤容器 */
+    .tag-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .tag {
+      font-size: 0.75rem;
+      padding: 3px 10px;
+      border-radius: 12px;
+      background: rgba(212, 175, 55, 0.12);
+      color: var(--gold-primary);
+      border: 1px solid var(--border-magic);
+    }
+
+    /* 聯絡資訊區塊 */
+    .contact-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border-magic);
+      border-radius: 12px;
+      padding: 36px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 28px;
+      margin-bottom: 60px;
+    }
+
+    .contact-item h4 {
+      color: var(--gold-primary);
+      margin-bottom: 10px;
+      font-size: 1.1rem;
+    }
+
+    .contact-item p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    /* 彈出視窗 (Modal) */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.88);
+      backdrop-filter: blur(10px);
+      z-index: 1000;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .modal-content {
+      background: #0f172a;
+      border: 2px solid var(--gold-primary);
+      border-radius: 16px;
+      max-width: 650px;
+      width: 100%;
+      padding: 32px;
+      position: relative;
+      box-shadow: 0 0 40px rgba(0, 243, 255, 0.25);
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 16px;
+      right: 20px;
+      font-size: 1.8rem;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .modal-close:hover {
+      color: var(--cyan-tech);
+    }
+
+    /* 頁尾 */
+    footer {
+      border-top: 1px solid var(--border-magic);
+      text-align: center;
+      padding: 30px 20px;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    @media (max-width: 768px) {
+      nav { display: none; }
+      .hero h1 { font-size: 2.2rem; }
+    }
+  </style>
 </head>
-<body class="w-screen h-screen relative flex flex-col justify-between p-2 select-none">
+<body>
 
-    <!-- Top Bar Header -->
-    <header class="cyber-panel w-full py-2 px-4 flex flex-wrap items-center justify-between z-20 gap-2 border-b">
-        <div class="flex items-center gap-3">
-            <div class="flex items-center gap-2">
-                <i class="fa-solid fa-subway text-cyan-400 text-xl animate-pulse"></i>
-                <h1 class="font-cyber text-lg font-bold tracking-wider text-white">TRTC <span class="text-cyan-400">TAIPEI METRO</span> OCC</h1>
-            </div>
-            <span class="bg-cyan-950 text-cyan-400 border border-cyan-800 text-xs px-2 py-0.5 rounded font-tech">SYSTEM v4.02 // WARP-READY</span>
+  <canvas id="bg-canvas"></canvas>
+
+  <header>
+    <div class="brand">
+      <div class="brand-icon">🔮</div>
+      <span>慈濟大學 經營管理學系</span>
+    </div>
+    <nav>
+      <a href="#about" class="active">系所簡介</a>
+      <a href="#features">核心特色</a>
+      <a href="#courses">課程與師資</a>
+      <a href="#labs">魔法實驗場域</a>
+      <a href="#contact">聯絡情報</a>
+    </nav>
+  </header>
+
+  <main>
+    <!-- 主視覺區塊 -->
+    <section class="hero" id="about">
+      <span class="hero-badge">[ CLASSIFIED INTEL ] DEPARTMENT OF BUSINESS MANAGEMENT</span>
+      <h1>慈濟大學 經營管理學系</h1>
+      <p>結合偵探數據分析、企業管理策略與人文誠信誠意。培養具備全球敏銳觀察力、決策執行力與新零售變革領導力的商業菁英。</p>
+
+      <div class="stats-bar">
+        <div class="stat-item">
+          <div class="stat-number">100%</div>
+          <div class="stat-label">實務個案教學覆蓋</div>
         </div>
-
-        <!-- Center Quick Telemetry -->
-        <div class="hidden lg:flex items-center gap-6 font-tech text-xs">
-            <div class="flex items-center gap-2">
-                <span class="text-gray-400">CBTC LINK:</span>
-                <span class="text-green-400 font-bold flex items-center gap-1">
-                    <span class="w-2 h-2 rounded-full bg-green-400 inline-block animate-ping"></span> 1.2ms
-                </span>
-            </div>
-            <div class="flex items-center gap-2">
-                <span class="text-gray-400">ACTIVE TRAINS:</span>
-                <span class="text-cyan-400 font-bold" id="total-trains-count">10 UNITS</span>
-            </div>
-            <div class="flex items-center gap-2">
-                <span class="text-gray-400">NETWORK SPEED:</span>
-                <span class="text-yellow-400 font-bold font-tech" id="global-speed-indicator">1.0x NORMAL</span>
-            </div>
+        <div class="stat-item">
+          <div class="stat-number">5 大</div>
+          <div class="stat-label">頂級沉浸式實習場域</div>
         </div>
-
-        <!-- Right Controls & Clock -->
-        <div class="flex items-center gap-3">
-            <button id="btn-defcon" class="cyber-button-danger text-xs font-tech px-3 py-1.5 flex items-center gap-2 font-bold uppercase rounded">
-                <i class="fa-solid fa-triangle-exclamation"></i> DEFCON 1
-            </button>
-
-            <button id="btn-audio" class="cyber-button text-xs font-tech px-3 py-1.5 flex items-center gap-1 rounded">
-                <i class="fa-solid fa-volume-high" id="audio-icon"></i> <span id="audio-status">AUDIO ON</span>
-            </button>
-
-            <div class="font-tech text-xs text-right border-l border-cyan-900 pl-3">
-                <div class="text-cyan-400 font-bold" id="live-clock">00:00:00 UTC+8</div>
-                <div class="text-gray-500 text-[10px]" id="live-date">2026-09-24</div>
-            </div>
+        <div class="stat-item">
+          <div class="stat-number">跨國</div>
+          <div class="stat-label">雙聯學位與海外交流</div>
         </div>
-    </header>
+      </div>
+    </section>
 
-    <!-- Speed & Camera Control Bar -->
-    <div class="absolute top-16 left-1/2 -translate-x-1/2 z-20 flex flex-wrap items-center gap-2 bg-slate-950/90 border border-cyan-500/40 p-1.5 rounded-lg shadow-2xl backdrop-blur-md">
-        <span class="font-tech text-xs text-cyan-400 font-bold px-2 flex items-center gap-1">
-            <i class="fa-solid fa-gauge-high"></i> SPEED MULTIPLIER:
-        </span>
-        
-        <div class="flex items-center gap-1 bg-black/50 p-1 rounded border border-slate-800">
-            <button class="speed-btn cyber-button active text-xs font-tech px-2.5 py-1" data-speed="1">1x</button>
-            <button class="speed-btn cyber-button text-xs font-tech px-2.5 py-1" data-speed="2">2x</button>
-            <button class="speed-btn cyber-button text-xs font-tech px-2.5 py-1" data-speed="5">5x FAST</button>
-            <button class="speed-btn cyber-button text-xs font-tech px-2.5 py-1 text-yellow-400 font-bold" data-speed="10">10x WARP</button>
-            <button class="speed-btn cyber-button text-xs font-tech px-2.5 py-1 text-red-500 font-bold" data-speed="20">20x HYPER</button>
+    <!-- 核心特色區塊 -->
+    <h2 class="section-title" id="features">核心解析與三大競爭優勢</h2>
+    <div class="grid-3">
+      <div class="card">
+        <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=800&q=80" alt="個案討論" class="card-img">
+        <div class="card-body">
+          <div class="card-code">// CORE PILLAR 01</div>
+          <h3>偵探級個案剖析</h3>
+          <p>運用數據推演與商業邏輯，深度拆解國際經典個案，養成在不確定市場中快速精準決策的實戰力。</p>
+          <div class="tag-container">
+            <span class="tag">翻轉學習</span>
+            <span class="tag">商業決策</span>
+          </div>
         </div>
-
-        <button id="btn-ebrake" class="cyber-button-danger text-xs font-tech px-3 py-1 font-bold flex items-center gap-1">
-            <i class="fa-solid fa-[#000]"></i> [EB] EMERGENCY BRAKE
-        </button>
-
-        <div class="h-4 w-px bg-slate-700 mx-1"></div>
-
-        <span class="font-tech text-xs text-cyan-400 font-bold px-1">CAM:</span>
-        <button id="cam-orbit" class="cyber-button active text-xs font-tech px-2 py-1"><i class="fa-solid fa-cube"></i> 3D</button>
-        <button id="cam-top" class="cyber-button text-xs font-tech px-2 py-1"><i class="fa-solid fa-map"></i> TOP</button>
-        <button id="cam-chase" class="cyber-button text-xs font-tech px-2 py-1"><i class="fa-solid fa-video"></i> CHASE</button>
-        <button id="cam-hub" class="cyber-button text-xs font-tech px-2 py-1"><i class="fa-solid fa-bullseye"></i> HUB</button>
+      </div>
+      <div class="card">
+        <img src="https://images.unsplash.com/photo-1556740758-90de374c12ad?auto=format&fit=crop&w=800&q=80" alt="實習體驗" class="card-img">
+        <div class="card-body">
+          <div class="card-code">// CORE PILLAR 02</div>
+          <h3>實境經營與營運體驗</h3>
+          <p>擁有自營實習場域與智慧零售實驗室，學生能從場域行銷、店務經營到數據分析全程親身參與。</p>
+          <div class="tag-container">
+            <span class="tag">場域實習</span>
+            <span class="tag">智慧零售</span>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <img src="https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=800&q=80" alt="國際視野" class="card-img">
+        <div class="card-body">
+          <div class="card-code">// CORE PILLAR 03</div>
+          <h3>全球戰略與永續管理</h3>
+          <p>結合 ESG 企業永續趨勢與跨國交流計畫，打造具備國際戰略思考能力與慈濟人文素養的管理者。</p>
+          <div class="tag-container">
+            <span class="tag">ESG 永續</span>
+            <span class="tag">國際移動力</span>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- Main Content Area with WebGL Container -->
-    <main class="relative w-full h-[calc(100vh-140px)] my-1 overflow-hidden rounded-md border border-cyan-900/50">
-        <!-- Three.js Canvas Container -->
-        <div id="webgl-container" class="w-full h-full absolute inset-0 cursor-grab active:cursor-grabbing"></div>
-
-        <!-- Overlay HUD Canvas for labels -->
-        <div id="hud-overlay" class="absolute inset-0 pointer-events-none overflow-hidden"></div>
-
-        <!-- Scanlines FX -->
-        <div class="scanlines absolute inset-0 pointer-events-none opacity-40"></div>
-
-        <!-- LEFT PANEL: Telemetry & Train Monitor -->
-        <aside class="absolute top-3 left-3 w-80 max-h-[calc(100%-24px)] flex flex-col gap-3 z-10 overflow-y-auto pr-1">
-            
-            <!-- Train Selection Card -->
-            <div class="cyber-panel p-3">
-                <div class="flex items-center justify-between border-b border-cyan-900/60 pb-1.5 mb-2">
-                    <span class="font-tech text-xs font-bold text-cyan-400 flex items-center gap-1.5">
-                        <i class="fa-solid fa-train text-cyan-400"></i> TRAIN TELEMETRY UNIT
-                    </span>
-                    <span class="text-[10px] font-tech text-gray-400" id="selected-train-id">TR-R01</span>
-                </div>
-
-                <div class="mb-3">
-                    <label class="text-[10px] font-tech text-gray-400 mb-1 block">SELECT ACTIVE TRAIN</label>
-                    <select id="train-selector" class="w-full bg-slate-900 border border-cyan-800 text-cyan-300 font-tech text-xs p-1.5 rounded outline-none focus:border-cyan-400">
-                        <!-- Populated by JS -->
-                    </select>
-                </div>
-
-                <!-- Live Speed Gauge -->
-                <div class="flex items-center justify-between bg-slate-950/80 p-2 rounded border border-cyan-900/40 mb-3">
-                    <div class="flex flex-col">
-                        <span class="text-[10px] font-tech text-gray-400">CURRENT SPEED</span>
-                        <div class="flex items-baseline gap-1">
-                            <span class="font-tech text-2xl font-bold text-white" id="telemetry-speed">82.4</span>
-                            <span class="font-tech text-xs text-cyan-400">KM/H</span>
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <span class="text-[10px] font-tech text-gray-400">MODE</span>
-                        <div class="font-tech text-xs font-bold text-green-400 flex items-center gap-1" id="telemetry-mode">
-                            <i class="fa-solid fa-robot"></i> ATO AUTO
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Passenger Load & Power Meters -->
-                <div class="space-y-2 font-tech text-xs">
-                    <div>
-                        <div class="flex justify-between text-[10px] text-gray-400 mb-0.5">
-                            <span>PASSENGER LOAD DENSITY</span>
-                            <span id="load-pct-text" class="text-cyan-300">68%</span>
-                        </div>
-                        <div class="w-full bg-slate-900 rounded-full h-2 overflow-hidden border border-slate-800">
-                            <div id="load-bar" class="bg-cyan-400 h-full transition-all duration-300" style="width: 68%;"></div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <div class="flex justify-between text-[10px] text-gray-400 mb-0.5">
-                            <span>TRACTION POWER MW</span>
-                            <span id="power-mw-text" class="text-yellow-400">3.4 MW</span>
-                        </div>
-                        <div class="w-full bg-slate-900 rounded-full h-2 overflow-hidden border border-slate-800">
-                            <div id="power-bar" class="bg-yellow-400 h-full transition-all duration-300" style="width: 55%;"></div>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-2 text-[10px] pt-1">
-                        <div class="bg-slate-950 p-1.5 rounded border border-slate-800">
-                            <span class="text-gray-500 block">BRAKE PRESS.</span>
-                            <span id="brake-press" class="text-cyan-300 font-bold">480 kPa</span>
-                        </div>
-                        <div class="bg-slate-950 p-1.5 rounded border border-slate-800">
-                            <span class="text-gray-500 block">ATC FREQ.</span>
-                            <span id="atc-freq" class="text-green-400 font-bold">464.20 MHz</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Radar / Sonar Sector Scanner Card -->
-            <div class="cyber-panel p-3">
-                <div class="flex items-center justify-between border-b border-cyan-900/60 pb-1.5 mb-2">
-                    <span class="font-tech text-xs font-bold text-cyan-400 flex items-center gap-1">
-                        <i class="fa-solid fa-radar"></i> SECTOR RADAR SCANNER
-                    </span>
-                    <span class="text-[10px] font-tech text-green-400 animate-pulse">● LIVE 360°</span>
-                </div>
-                <div class="relative w-full aspect-square bg-slate-950 rounded flex items-center justify-center border border-cyan-950 overflow-hidden">
-                    <canvas id="radar-canvas" class="w-full h-full"></canvas>
-                </div>
-            </div>
-
-        </aside>
-
-        <!-- RIGHT PANEL: CCTV & Power Grid Matrix -->
-        <aside class="absolute top-3 right-3 w-80 max-h-[calc(100%-24px)] flex flex-col gap-3 z-10 overflow-y-auto pl-1">
-            
-            <!-- CCTV Simulation Card -->
-            <div class="cyber-panel p-3">
-                <div class="flex items-center justify-between border-b border-cyan-900/60 pb-1.5 mb-2">
-                    <span class="font-tech text-xs font-bold text-cyan-400 flex items-center gap-1">
-                        <i class="fa-solid fa-video"></i> CAM-01: TAIPEI MAIN HUB
-                    </span>
-                    <span class="text-[10px] font-tech text-red-500 animate-pulse">● REC</span>
-                </div>
-
-                <!-- Simulated CCTV Video Box -->
-                <div class="relative w-full h-36 bg-black rounded overflow-hidden border border-cyan-900/80 flex flex-col justify-between p-2">
-                    <canvas id="cctv-canvas" class="absolute inset-0 w-full h-full opacity-60"></canvas>
-                    <div class="relative z-10 flex justify-between text-[10px] font-tech text-green-400 bg-black/60 px-1 rounded">
-                        <span>FPS: 60.0</span>
-                        <span>IR DENSITY SCAN</span>
-                    </div>
-                    <div class="relative z-10 text-[10px] font-tech text-cyan-300 bg-black/60 px-1 rounded flex justify-between">
-                        <span>PLATFORM 1 - BANNAN</span>
-                        <span id="cctv-crowd-status" class="text-yellow-400">MODERATE (64%)</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Substation Power Matrix -->
-            <div class="cyber-panel p-3">
-                <div class="flex items-center justify-between border-b border-cyan-900/60 pb-1.5 mb-2">
-                    <span class="font-tech text-xs font-bold text-cyan-400 flex items-center gap-1">
-                        <i class="fa-solid fa-bolt"></i> SUBSTATION POWER GRID
-                    </span>
-                    <span class="text-[10px] font-tech text-cyan-300">750V DC</span>
-                </div>
-
-                <div class="grid grid-cols-2 gap-2 text-xs font-tech">
-                    <div class="bg-slate-950/80 p-2 rounded border border-green-500/30">
-                        <div class="flex justify-between text-[10px] text-gray-400">
-                            <span>SS-01 (TAMSUI)</span>
-                            <span class="text-green-400">OK</span>
-                        </div>
-                        <div class="text-sm font-bold text-white mt-1">752 V</div>
-                    </div>
-                    <div class="bg-slate-950/80 p-2 rounded border border-green-500/30">
-                        <div class="flex justify-between text-[10px] text-gray-400">
-                            <span>SS-02 (MAIN)</span>
-                            <span class="text-green-400">OK</span>
-                        </div>
-                        <div class="text-sm font-bold text-white mt-1">748 V</div>
-                    </div>
-                    <div class="bg-slate-950/80 p-2 rounded border border-yellow-500/30">
-                        <div class="flex justify-between text-[10px] text-gray-400">
-                            <span>SS-03 (BANNAN)</span>
-                            <span class="text-yellow-400">HIGH</span>
-                        </div>
-                        <div class="text-sm font-bold text-white mt-1">765 V</div>
-                    </div>
-                    <div class="bg-slate-950/80 p-2 rounded border border-green-500/30">
-                        <div class="flex justify-between text-[10px] text-gray-400">
-                            <span>SS-04 (XINDIAN)</span>
-                            <span class="text-green-400">OK</span>
-                        </div>
-                        <div class="text-sm font-bold text-white mt-1">750 V</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Oscilloscope Canvas -->
-            <div class="cyber-panel p-3">
-                <div class="flex items-center justify-between border-b border-cyan-900/60 pb-1.5 mb-2">
-                    <span class="font-tech text-xs font-bold text-cyan-400 flex items-center gap-1">
-                        <i class="fa-solid fa-wave-square"></i> CBTC SIGNAL WAVEFORM
-                    </span>
-                    <span class="text-[10px] font-tech text-gray-400">5.8 GHz</span>
-                </div>
-                <div class="w-full h-16 bg-slate-950 rounded border border-cyan-950 overflow-hidden">
-                    <canvas id="scope-canvas" class="w-full h-full"></canvas>
-                </div>
-            </div>
-
-        </aside>
-    </main>
-
-    <!-- Bottom Systems Logs & Events Bar -->
-    <footer class="cyber-panel w-full py-2 px-3 flex flex-col md:flex-row items-center justify-between gap-3 z-20 text-xs font-tech">
-        <div class="flex items-center gap-2 text-cyan-400 font-bold whitespace-nowrap">
-            <i class="fa-solid fa-terminal"></i>
-            <span>SYSTEM LOGS:</span>
+    <!-- 課程架構與發展 -->
+    <h2 class="section-title" id="courses">模組化課程與未來發展</h2>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-body">
+          <div class="card-code">[ CURRICULUM MODULES ]</div>
+          <h3>三大核心學習模組</h3>
+          <p>經營管理學系設計循序漸進的技能樹，幫助學員精準鎖定職涯目標：</p>
+          <ul style="color: var(--text-muted); margin-left: 20px; margin-top: 10px; font-size: 0.95rem;">
+            <li><b>智慧行銷與流通模組：</b>數位行銷、社群數據分析、智慧商店營運。</li>
+            <li><b>組織經營與戰略模組：</b>人力資源戰略、企業個案解析、高階領導力。</li>
+            <li><b>永續經營與財務模組：</b>ESG 永續報告書撰寫、企業財務診斷與分析。</li>
+          </ul>
         </div>
-
-        <div id="log-feed" class="w-full overflow-hidden whitespace-nowrap text-gray-300 bg-slate-950/80 px-3 py-1 rounded border border-cyan-900/40 h-7 flex items-center">
-            <span class="text-green-400 font-bold mr-2">[INFO]</span>
-            <span id="log-message">Initializing Taipei Metro OCC 3D Network Core Architecture...</span>
+      </div>
+      <div class="card">
+        <div class="card-body">
+          <div class="card-code">[ CAREER PATHWAYS ]</div>
+          <h3>畢業進路與競爭優勢</h3>
+          <p>畢業生具備廣泛的商業適應力，就業與升學表現亮眼：</p>
+          <ul style="color: var(--text-muted); margin-left: 20px; margin-top: 10px; font-size: 0.95rem;">
+            <li><b>高階管理與顧問：</b>數據分析師、企業經營企劃、行銷專案經理。</li>
+            <li><b>新零售與創業：</b>電商營運主管、連鎖門市經理、新創事業創辦人。</li>
+            <li><b>國內外研究所：</b>深造商管、企管、國際貿易與行銷相關碩士。</li>
+          </ul>
         </div>
+      </div>
+    </div>
 
-        <div class="flex items-center gap-2 whitespace-nowrap text-[11px] text-gray-400">
-            <span>NETWORK HEALTH: <strong class="text-green-400">99.8%</strong></span>
-            <span>|</span>
-            <span>POWER GRID: <strong class="text-cyan-400">NOMINAL</strong></span>
+    <!-- 專業教室與實習場域 -->
+    <h2 class="section-title" id="labs">特級戰略設施與實習場域</h2>
+    <div class="grid-3">
+      <div class="card facility-card" onclick="openModal('個案教學研討室', '採用翻轉教育理論建構的沉浸式討論環境，配備先進影音互動系統，供學員進行商業戰略模擬與個案辯論。')">
+        <img src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=800&q=80" alt="個案教室" class="card-img">
+        <div class="card-body">
+          <div class="card-code">[ ROOM-01 ]</div>
+          <h3>個案教學研討室</h3>
+          <p>以翻轉教育理論設計，提供高互動商業個案推演環境。</p>
         </div>
-    </footer>
-
-    <script>
-        // --- Web Audio Synthesizer ---
-        class AudioSynth {
-            constructor() {
-                this.ctx = null;
-                this.enabled = true;
-            }
-
-            init() {
-                if (!this.ctx) {
-                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-                }
-            }
-
-            playBeep(freq = 800, duration = 0.08, type = 'sine') {
-                if (!this.enabled) return;
-                this.init();
-                try {
-                    const osc = this.ctx.createOscillator();
-                    const gain = this.ctx.createGain();
-                    osc.type = type;
-                    osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-                    gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
-                    osc.connect(gain);
-                    gain.connect(this.ctx.destination);
-                    osc.start();
-                    osc.stop(this.ctx.currentTime + duration);
-                } catch (e) {}
-            }
-
-            playSpeedWarpSound(speed) {
-                if (!this.enabled) return;
-                this.init();
-                try {
-                    const osc = this.ctx.createOscillator();
-                    const gain = this.ctx.createGain();
-                    osc.type = 'sawtooth';
-                    const baseFreq = 200 + speed * 60;
-                    osc.frequency.setValueAtTime(baseFreq, this.ctx.currentTime);
-                    osc.frequency.exponentialRampToValueAtTime(baseFreq * 2, this.ctx.currentTime + 0.3);
-                    
-                    gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.35);
-
-                    osc.connect(gain);
-                    gain.connect(this.ctx.destination);
-                    osc.start();
-                    osc.stop(this.ctx.currentTime + 0.35);
-                } catch (e) {}
-            }
-
-            playSiren() {
-                if (!this.enabled) return;
-                this.init();
-                try {
-                    const osc = this.ctx.createOscillator();
-                    const gain = this.ctx.createGain();
-                    osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(400, this.ctx.currentTime);
-                    osc.frequency.linearRampToValueAtTime(900, this.ctx.currentTime + 0.25);
-                    osc.frequency.linearRampToValueAtTime(400, this.ctx.currentTime + 0.5);
-
-                    gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.5);
-
-                    osc.connect(gain);
-                    gain.connect(this.ctx.destination);
-                    osc.start();
-                    osc.stop(this.ctx.currentTime + 0.5);
-                } catch (e) {}
-            }
-        }
-
-        const synth = new AudioSynth();
-
-        // --- Metro Network Topology Data ---
-        const LINE_COLORS = {
-            R: 0xff2a55,  // Red Line
-            BL: 0x00bfff, // Blue Line
-            G: 0x00ff66,  // Green Line
-            O: 0xff9900,  // Orange Line
-            BR: 0xcc66ff  // Brown / Wenhu Line
-        };
-
-        // Simplified 3D coordinates layout for Taipei Metro
-        const STATIONS = [
-            // Red Line (Tamsui-Xinyi)
-            { id: 'R16', name: 'Tamsui', pos: [-55, 0, -50], line: 'R' },
-            { id: 'R13', name: 'Beitou', pos: [-35, 0, -32], line: 'R' },
-            { id: 'R11', name: 'Yuanshan', pos: [-15, 0, -18], line: 'R' },
-            { id: 'R10', name: 'Zhongshan', pos: [0, 0, -10], line: 'R' },
-            { id: 'R08', name: 'Taipei Main Hub', pos: [0, 0, 0], line: 'R', hub: true },
-            { id: 'R07', name: 'Chiang Kai-shek', pos: [0, 0, 15], line: 'R' },
-            { id: 'R05', name: 'Daan', pos: [20, 0, 15], line: 'R' },
-            { id: 'R02', name: 'Xiangshan', pos: [45, 0, 15], line: 'R' },
-
-            // Blue Line (Bannan)
-            { id: 'BL05', name: 'Dingpu', pos: [-50, 0, 35], line: 'BL' },
-            { id: 'BL10', name: 'Longshan Temple', pos: [-20, 0, 0], line: 'BL' },
-            { id: 'BL11', name: 'Ximen', pos: [-10, 0, 0], line: 'BL', hub: true },
-            // Taipei Main Hub (R08 / BL12)
-            { id: 'BL15', name: 'Zhongxiao Fuxing', pos: [20, 0, 0], line: 'BL', hub: true },
-            { id: 'BL18', name: 'TPE City Hall', pos: [40, 0, 0], line: 'BL' },
-            { id: 'BL23', name: 'Nangang Hub', pos: [60, 0, -5], line: 'BL' },
-
-            // Green Line (Songshan-Xindian)
-            { id: 'G19', name: 'Songshan', pos: [40, 0, -18], line: 'G' },
-            { id: 'G15', name: 'Nanjing Fuxing', pos: [20, 0, -10], line: 'G' },
-            { id: 'G14', name: 'Songjiang Nanjing', pos: [8, 0, -10], line: 'G' },
-            // Zhongshan (G13 / R10)
-            // Ximen (G12 / BL11)
-            { id: 'G08', name: 'Guting', pos: [0, 0, 25], line: 'G' },
-            { id: 'G01', name: 'Xindian', pos: [10, 0, 55], line: 'G' },
-
-            // Orange Line (Zhonghe-Xinlu)
-            { id: 'O01', name: 'Nanshan', pos: [-15, 0, 40], line: 'O' },
-            // CKS Memorial (R07)
-            { id: 'O08', name: 'Daqiaotou', pos: [-10, 0, -20], line: 'O' },
-            { id: 'O19', name: 'Luzhou', pos: [-30, 0, -35], line: 'O' },
-
-            // Brown Line (Wenhu)
-            { id: 'BR09', name: 'Daan Park', pos: [20, 0, 30], line: 'BR' },
-            // Daan (BR10 / R05)
-            // Zhongxiao Fuxing (BR11 / BL15)
-            // Nanjing Fuxing (BR12 / G15)
-            { id: 'BR13', name: 'Songshan Airport', pos: [20, 0, -30], line: 'BR' },
-            { id: 'BR24', name: 'Nangang Software', pos: [55, 0, -20], line: 'BR' }
-        ];
-
-        // Routes defined by station ID sequences
-        const ROUTES = {
-            R: ['R16', 'R13', 'R11', 'R10', 'R08', 'R07', 'R05', 'R02'],
-            BL: ['BL05', 'BL10', 'BL11', 'R08', 'BL15', 'BL18', 'BL23'],
-            G: ['G19', 'G15', 'G14', 'R10', 'BL11', 'G08', 'G01'],
-            O: ['O01', 'R07', 'G14', 'O08', 'O19'],
-            BR: ['BR09', 'R05', 'BL15', 'G15', 'BR13', 'BR24']
-        };
-
-        // --- 3D Scene Global Variables ---
-        let scene, camera, renderer, controls;
-        let trainObjects = [];
-        let globalSpeedMultiplier = 1.0;
-        let selectedTrainIndex = 0;
-        let cameraMode = 'orbit'; // orbit, top, chase, hub
-        let defconActive = false;
-
-        const container = document.getElementById('webgl-container');
-
-        function init3D() {
-            scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x040914);
-            scene.fog = new THREE.FogExp2(0x040914, 0.008);
-
-            camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
-            camera.position.set(0, 70, 90);
-
-            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-            renderer.setSize(container.clientWidth, container.clientHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-            renderer.shadowMap.enabled = true;
-            container.appendChild(renderer.domElement);
-
-            controls = new THREE.OrbitControls(camera, renderer.domElement);
-            controls.enableDamping = true;
-            controls.dampingFactor = 0.05;
-            controls.maxPolarAngle = Math.PI / 2 - 0.02; // Don't go below ground
-
-            // Ambient & Directional Lights
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-            scene.add(ambientLight);
-
-            const dirLight = new THREE.DirectionalLight(0x00f0ff, 1.2);
-            dirLight.position.set(30, 80, 50);
-            scene.add(dirLight);
-
-            const pointLight = new THREE.PointLight(0xff2a55, 1.5, 100);
-            pointLight.position.set(0, 10, 0);
-            scene.add(pointLight);
-
-            // Cyberpunk Grid Ground
-            const gridHelper = new THREE.GridHelper(200, 50, 0x00f0ff, 0x0a2540);
-            gridHelper.position.y = -0.5;
-            scene.add(gridHelper);
-
-            // Build Network Tracks & Stations
-            buildNetwork();
-
-            // Spawn Trains
-            spawnTrains();
-
-            // Handle Window Resize
-            window.addEventListener('resize', onWindowResize);
-        }
-
-        // Helper to find station position by ID
-        function getStationPos(id) {
-            const st = STATIONS.find(s => s.id === id);
-            return st ? new THREE.Vector3(...st.pos) : new THREE.Vector3(0, 0, 0);
-        }
-
-        function buildNetwork() {
-            // Draw Glowing Tube Lines for Routes
-            Object.keys(ROUTES).forEach(lineKey => {
-                const stationIds = ROUTES[lineKey];
-                const points = stationIds.map(id => getStationPos(id));
-
-                // Create smooth Curve
-                const curve = new THREE.CatmullRomCurve3(points, false, 'catmullrom', 0.2);
-                const geometry = new THREE.TubeGeometry(curve, 64, 0.4, 8, false);
-                const material = new THREE.MeshBasicMaterial({
-                    color: LINE_COLORS[lineKey],
-                    wireframe: false,
-                    transparent: true,
-                    opacity: 0.85
-                });
-                const tube = new THREE.Mesh(geometry, material);
-                scene.add(tube);
-
-                // Add outer glowing line shell
-                const glowGeo = new THREE.TubeGeometry(curve, 64, 0.8, 8, false);
-                const glowMat = new THREE.MeshBasicMaterial({
-                    color: LINE_COLORS[lineKey],
-                    transparent: true,
-                    opacity: 0.2,
-                    wireframe: true
-                });
-                scene.add(new THREE.Mesh(glowGeo, glowMat));
-            });
-
-            // Draw Station Hubs Nodes
-            STATIONS.forEach(st => {
-                const pos = new THREE.Vector3(...st.pos);
-                
-                // Outer ring
-                const ringGeo = new THREE.RingGeometry(1.2, 1.8, 16);
-                const ringMat = new THREE.MeshBasicMaterial({
-                    color: st.hub ? 0xffff00 : LINE_COLORS[st.line],
-                    side: THREE.DoubleSide,
-                    transparent: true,
-                    opacity: 0.9
-                });
-                const ring = new THREE.Mesh(ringGeo, ringMat);
-                ring.rotation.x = Math.PI / 2;
-                ring.position.copy(pos);
-                ring.position.y = 0.1;
-                scene.add(ring);
-
-                // Center Station Cylinder
-                const cylGeo = new THREE.CylinderGeometry(0.8, 0.8, st.hub ? 3 : 1.5, 12);
-                const cylMat = new THREE.MeshPhongMaterial({
-                    color: st.hub ? 0xffea00 : LINE_COLORS[st.line],
-                    emissive: st.hub ? 0x665500 : 0x111111,
-                    shininess: 100
-                });
-                const cyl = new THREE.Mesh(cylGeo, cylMat);
-                cyl.position.copy(pos);
-                cyl.position.y = (st.hub ? 3 : 1.5) / 2;
-                scene.add(cyl);
-            });
-        }
-
-        function spawnTrains() {
-            const trainDataList = [
-                { id: 'TR-R01', line: 'R', speed: 0.0015 },
-                { id: 'TR-R02', line: 'R', speed: 0.0018 },
-                { id: 'TR-BL01', line: 'BL', speed: 0.0020 },
-                { id: 'TR-BL02', line: 'BL', speed: 0.0014 },
-                { id: 'TR-G01', line: 'G', speed: 0.0016 },
-                { id: 'TR-G02', line: 'G', speed: 0.0019 },
-                { id: 'TR-O01', line: 'O', speed: 0.0017 },
-                { id: 'TR-BR01', line: 'BR', speed: 0.0022 }
-            ];
-
-            const selector = document.getElementById('train-selector');
-            selector.innerHTML = '';
-
-            trainDataList.forEach((tData, index) => {
-                const stationIds = ROUTES[tData.line];
-                const points = stationIds.map(id => getStationPos(id));
-                const curve = new THREE.CatmullRomCurve3(points, false, 'catmullrom', 0.2);
-
-                // Create Train Metallic Mesh Block
-                const group = new THREE.Group();
-                
-                const bodyGeo = new THREE.BoxGeometry(1.6, 1.2, 4);
-                const bodyMat = new THREE.MeshPhongMaterial({
-                    color: 0x1e293b,
-                    emissive: LINE_COLORS[tData.line],
-                    emissiveIntensity: 0.4,
-                    metalness: 0.8,
-                    roughness: 0.2
-                });
-                const body = new THREE.Mesh(bodyGeo, bodyMat);
-                body.position.y = 0.8;
-                group.add(body);
-
-                // Front Headlight Beam
-                const light = new THREE.SpotLight(0x00f0ff, 3, 15, Math.PI / 6, 0.5);
-                light.position.set(0, 1, 1.8);
-                light.target.position.set(0, 0, 10);
-                group.add(light);
-                group.add(light.target);
-
-                scene.add(group);
-
-                const trainObj = {
-                    id: tData.id,
-                    line: tData.line,
-                    group: group,
-                    curve: curve,
-                    progress: Math.random(), // Start at random position along track
-                    baseSpeed: tData.speed,
-                    currentSpeedKm: 0,
-                    direction: 1
-                };
-
-                trainObjects.push(trainObj);
-
-                // Populate Dropdown
-                const opt = document.createElement('option');
-                opt.value = index;
-                opt.textContent = `${tData.id} (${tData.line}-LINE)`;
-                selector.appendChild(opt);
-            });
-
-            document.getElementById('total-trains-count').textContent = `${trainObjects.length} UNITS`;
-        }
-
-        let clock = new THREE.Clock();
-
-        function animate() {
-            requestAnimationFrame(animate);
-
-            const delta = clock.getDelta();
-
-            // Update Trains Position along Spline curves
-            trainObjects.forEach((train, idx) => {
-                // Apply Warp Speed Multiplier
-                const effectiveSpeed = train.baseSpeed * globalSpeedMultiplier;
-                
-                train.progress += effectiveSpeed * train.direction * delta * 30;
-                
-                // Bounce back at endpoints
-                if (train.progress >= 1.0) {
-                    train.progress = 1.0;
-                    train.direction = -1;
-                } else if (train.progress <= 0) {
-                    train.progress = 0;
-                    train.direction = 1;
-                }
-
-                // Get 3D Point on Curve
-                const point = train.curve.getPointAt(train.progress);
-                const tangent = train.curve.getTangentAt(train.progress);
-
-                train.group.position.copy(point);
-                
-                // Orient train towards movement direction
-                const lookTarget = point.clone().add(tangent.clone().multiplyScalar(train.direction));
-                train.group.lookAt(lookTarget);
-
-                // Calculate Simulated Speed
-                train.currentSpeedKm = (effectiveSpeed * 45000).toFixed(1);
-            });
-
-            // Update Camera based on Mode
-            updateCameraMode();
-
-            // Render HUD overlay markers
-            updateHudOverlay();
-
-            // Render Three.js Scene
-            controls.update();
-            renderer.render(scene, camera);
-
-            // Update UI Telemetry
-            updateTelemetryUI();
-        }
-
-        function updateCameraMode() {
-            if (cameraMode === 'chase' && trainObjects[selectedTrainIndex]) {
-                const targetTrain = trainObjects[selectedTrainIndex].group;
-                const offset = new THREE.Vector3(0, 8, -15).applyQuaternion(targetTrain.quaternion);
-                camera.position.lerp(targetTrain.position.clone().add(offset), 0.1);
-                controls.target.lerp(targetTrain.position, 0.1);
-            } else if (cameraMode === 'top') {
-                camera.position.lerp(new THREE.Vector3(0, 110, 0.1), 0.05);
-                controls.target.lerp(new THREE.Vector3(0, 0, 0), 0.05);
-            } else if (cameraMode === 'hub') {
-                const hubPos = getStationPos('R08');
-                camera.position.lerp(new THREE.Vector3(hubPos.x + 25, hubPos.y + 25, hubPos.z + 30), 0.05);
-                controls.target.lerp(hubPos, 0.05);
-            }
-        }
-
-        function updateHudOverlay() {
-            const overlay = document.getElementById('hud-overlay');
-            overlay.innerHTML = '';
-
-            STATIONS.filter(s => s.hub).forEach(st => {
-                const pos = new THREE.Vector3(...st.pos);
-                pos.y += 3;
-                
-                // Project 3D pos to 2D Screen
-                pos.project(camera);
-
-                const x = (pos.x * .5 + .5) * container.clientWidth;
-                const y = (-(pos.y * .5) + .5) * container.clientHeight;
-
-                // Only render if in front of camera
-                if (pos.z < 1) {
-                    const label = document.createElement('div');
-                    label.className = 'station-label-hud';
-                    label.style.left = `${x}px`;
-                    label.style.top = `${y}px`;
-                    label.innerHTML = `<i class="fa-solid fa-location-dot text-yellow-400 mr-1"></i>${st.name}`;
-                    overlay.appendChild(label);
-                }
-            });
-        }
-
-        function onWindowResize() {
-            camera.aspect = container.clientWidth / container.clientHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(container.clientWidth, container.clientHeight);
-        }
-
-        // --- Dynamic Telemetry UI Updates ---
-        function updateTelemetryUI() {
-            const currentTrain = trainObjects[selectedTrainIndex];
-            if (!currentTrain) return;
-
-            document.getElementById('selected-train-id').textContent = currentTrain.id;
-            document.getElementById('telemetry-speed').textContent = currentTrain.currentSpeedKm;
-            
-            // Dynamic load and power simulation based on speed
-            const speedRatio = Math.min(parseFloat(currentTrain.currentSpeedKm) / 100, 2.0);
-            const loadPct = Math.round(50 + Math.sin(Date.now() * 0.001) * 20);
-            const powerMw = (2.1 + speedRatio * 1.8).toFixed(1);
-
-            document.getElementById('load-pct-text').textContent = `${loadPct}%`;
-            document.getElementById('load-bar').style.width = `${loadPct}%`;
-
-            document.getElementById('power-mw-text').textContent = `${powerMw} MW`;
-            document.getElementById('power-bar').style.width = `${Math.min(speedRatio * 50, 100)}%`;
-        }
-
-        // Canvas 1: Animated Radar / Sonar Scanner
-        const radarCanvas = document.getElementById('radar-canvas');
-        const rCtx = radarCanvas.getContext('2d');
-        let radarAngle = 0;
-
-        function drawRadar() {
-            radarCanvas.width = radarCanvas.clientWidth;
-            radarCanvas.height = radarCanvas.clientHeight;
-            const cx = radarCanvas.width / 2;
-            const cy = radarCanvas.height / 2;
-            const radius = Math.min(cx, cy) - 10;
-
-            rCtx.clearRect(0, 0, radarCanvas.width, radarCanvas.height);
-
-            // Concentric Rings
-            rCtx.strokeStyle = 'rgba(0, 240, 255, 0.2)';
-            rCtx.lineWidth = 1;
-            for (let r = 0.25; r <= 1; r += 0.25) {
-                rCtx.beginPath();
-                rCtx.arc(cx, cy, radius * r, 0, Math.PI * 2);
-                rCtx.stroke();
-            }
-
-            // Crosshair
-            rCtx.beginPath();
-            rCtx.moveTo(cx - radius, cy); rCtx.lineTo(cx + radius, cy);
-            rCtx.moveTo(cx, cy - radius); rCtx.lineTo(cx, cy + radius);
-            rCtx.stroke();
-
-            // Radar Sweep line
-            radarAngle += 0.03 * globalSpeedMultiplier;
-            rCtx.save();
-            rCtx.translate(cx, cy);
-            rCtx.rotate(radarAngle);
-            
-            const gradient = rCtx.createConicalGradient ? rCtx.createConicalGradient(0, 0, 0) : null;
-            rCtx.beginPath();
-            rCtx.moveTo(0, 0);
-            rCtx.arc(0, 0, radius, 0, Math.PI / 4);
-            rCtx.fillStyle = 'rgba(0, 240, 255, 0.15)';
-            rCtx.fill();
-
-            rCtx.beginPath();
-            rCtx.moveTo(0, 0);
-            rCtx.lineTo(radius, 0);
-            rCtx.strokeStyle = '#00f0ff';
-            rCtx.lineWidth = 1.5;
-            rCtx.stroke();
-            rCtx.restore();
-
-            // Draw Train Blips on Radar
-            trainObjects.forEach(t => {
-                const bx = cx + (t.group.position.x / 100) * radius;
-                const by = cy + (t.group.position.z / 100) * radius;
-                rCtx.fillStyle = '#ff2a55';
-                rCtx.beginPath();
-                rCtx.arc(bx, by, 3, 0, Math.PI * 2);
-                rCtx.fill();
-            });
-
-            requestAnimationFrame(drawRadar);
-        }
-
-        // Canvas 2: CCTV Simulation Matrix
-        const cctvCanvas = document.getElementById('cctv-canvas');
-        const cCtx = cctvCanvas.getContext('2d');
-
-        function drawCCTV() {
-            cctvCanvas.width = cctvCanvas.clientWidth;
-            cctvCanvas.height = cctvCanvas.clientHeight;
-
-            cCtx.fillStyle = '#000';
-            cCtx.fillRect(0, 0, cctvCanvas.width, cctvCanvas.height);
-
-            // Draw Wireframe Crowd silhouettes
-            cCtx.strokeStyle = 'rgba(0, 255, 100, 0.4)';
-            cCtx.lineWidth = 1;
-
-            const time = Date.now() * 0.002;
-            for (let i = 0; i < 15; i++) {
-                const px = (Math.sin(time + i) * 0.4 + 0.5) * cctvCanvas.width;
-                const py = (Math.cos(time * 0.8 + i) * 0.2 + 0.6) * cctvCanvas.height;
-
-                cCtx.beginPath();
-                cCtx.arc(px, py, 6, 0, Math.PI * 2);
-                cCtx.stroke();
-            }
-
-            requestAnimationFrame(drawCCTV);
-        }
-
-        // Canvas 3: Oscilloscope CBTC Signal
-        const scopeCanvas = document.getElementById('scope-canvas');
-        const sCtx = scopeCanvas.getContext('2d');
-        let scopeOffset = 0;
-
-        function drawScope() {
-            scopeCanvas.width = scopeCanvas.clientWidth;
-            scopeCanvas.height = scopeCanvas.clientHeight;
-
-            sCtx.clearRect(0, 0, scopeCanvas.width, scopeCanvas.height);
-            sCtx.strokeStyle = defconActive ? '#ff2a55' : '#00f0ff';
-            sCtx.lineWidth = 1.5;
-            sCtx.beginPath();
-
-            scopeOffset += 0.08 * globalSpeedMultiplier;
-            const midY = scopeCanvas.height / 2;
-
-            for (let x = 0; x < scopeCanvas.width; x++) {
-                const y = midY + Math.sin(x * 0.05 + scopeOffset) * 15 * Math.cos(x * 0.01);
-                if (x === 0) sCtx.moveTo(x, y);
-                else sCtx.lineTo(x, y);
-            }
-            sCtx.stroke();
-
-            requestAnimationFrame(drawScope);
-        }
-
-        // --- Interactive Event Handlers ---
-        document.addEventListener('DOMContentLoaded', () => {
-            init3D();
-            animate();
-            drawRadar();
-            drawCCTV();
-            drawScope();
-
-            // Speed Multipliers
-            document.querySelectorAll('.speed-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    
-                    globalSpeedMultiplier = parseFloat(btn.dataset.speed);
-                    document.getElementById('global-speed-indicator').textContent = `${globalSpeedMultiplier}x ${globalSpeedMultiplier > 1 ? 'FAST' : 'NORMAL'}`;
-                    
-                    synth.playSpeedWarpSound(globalSpeedMultiplier);
-                    logEvent('WARN', `Speed Multiplier adjusted to ${globalSpeedMultiplier}x WARP.`);
-                });
-            });
-
-            // Camera Controls
-            document.getElementById('cam-orbit').addEventListener('click', () => setCamMode('orbit', 'cam-orbit'));
-            document.getElementById('cam-top').addEventListener('click', () => setCamMode('top', 'cam-top'));
-            document.getElementById('cam-chase').addEventListener('click', () => setCamMode('chase', 'cam-chase'));
-            document.getElementById('cam-hub').addEventListener('click', () => setCamMode('hub', 'cam-hub'));
-
-            function setCamMode(mode, btnId) {
-                cameraMode = mode;
-                document.querySelectorAll('#cam-orbit, #cam-top, #cam-chase, #cam-hub').forEach(b => b.classList.remove('active'));
-                document.getElementById(btnId).classList.add('active');
-                synth.playBeep(900, 0.05);
-                logEvent('INFO', `Camera view switched to mode: ${mode.toUpperCase()}`);
-            }
-
-            // Emergency Brake Button
-            document.getElementById('btn-ebrake').addEventListener('click', () => {
-                globalSpeedMultiplier = 0;
-                document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
-                document.getElementById('global-speed-indicator').textContent = '0.0x [EB STOP]';
-                synth.playSiren();
-                logEvent('ALERT', 'EMERGENCY BRAKE ENGAGED! ALL TRAINS STOPPED IMMEDIATELY.');
-            });
-
-            // DEFCON Button
-            document.getElementById('btn-defcon').addEventListener('click', () => {
-                defconActive = !defconActive;
-                document.body.classList.toggle('defcon-active', defconActive);
-                synth.playSiren();
-                logEvent('CRITICAL', `DEFCON 1 PROTOCOL ${defconActive ? 'ACTIVATED' : 'DEACTIVATED'}.`);
-            });
-
-            // Audio Toggle
-            document.getElementById('btn-audio').addEventListener('click', () => {
-                synth.enabled = !synth.enabled;
-                document.getElementById('audio-status').textContent = synth.enabled ? 'AUDIO ON' : 'MUTED';
-                document.getElementById('audio-icon').className = synth.enabled ? 'fa-solid fa-volume-high' : 'fa-solid fa-volume-xmark';
-            });
-
-            // Train Selector Dropdown Change
-            document.getElementById('train-selector').addEventListener('change', (e) => {
-                selectedTrainIndex = parseInt(e.target.value);
-                synth.playBeep(1100, 0.05);
-            });
-
-            // Live Clock Update
-            setInterval(() => {
-                const now = new Date();
-                document.getElementById('live-clock').textContent = now.toTimeString().split(' ')[0] + ' UTC+8';
-                document.getElementById('live-date').textContent = now.toISOString().split('T')[0];
-            }, 1000);
-        });
-
-        // Event Logging Utility
-        function logEvent(type, msg) {
-            const logBox = document.getElementById('log-message');
-            const colorClass = type === 'CRITICAL' || type === 'ALERT' ? 'text-red-400 font-bold' : type === 'WARN' ? 'text-yellow-400' : 'text-green-400';
-            logBox.innerHTML = `<span class="${colorClass}">[${type}]</span> ${msg}`;
-        }
-    </script>
+      </div>
+
+      <div class="card facility-card" onclick="openModal('知足咖啡館 (實習教室)', '高規格專業餐飲與服務設施，提供外場行銷與店務營運的真實體驗，鍛鍊商業運營實務能力。')">
+        <img src="https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=800&q=80" alt="知足咖啡館" class="card-img">
+        <div class="card-body">
+          <div class="card-code">[ ROOM-02 ]</div>
+          <h3>知足咖啡館實習教室</h3>
+          <p>外場行銷體驗實習場域，建置高規專業餐飲與服務設備。</p>
+        </div>
+      </div>
+
+      <div class="card facility-card" onclick="openModal('國際商務教室', '專為國際商務談判、高階研習與專業研討打造的安靜舒適空間。')">
+        <img src="https://images.unsplash.com/photo-1431540015161-0bf868a2d407?auto=format&fit=crop&w=800&q=80" alt="國際商務教室" class="card-img">
+        <div class="card-body">
+          <div class="card-code">[ ROOM-03 ]</div>
+          <h3>國際商務教室</h3>
+          <p>提供安靜舒適的高階研習、簡報與模擬商務談判空間。</p>
+        </div>
+      </div>
+
+      <div class="card facility-card" onclick="openModal('簡報與溝通教室', '配備高解析簡報投影與多媒體影音設備，強化口語表達、商務簡報與高階溝通技巧。')">
+        <img src="https://images.unsplash.com/photo-1475721027785-f74eccf877e2?auto=format&fit=crop&w=800&q=80" alt="簡報教室" class="card-img">
+        <div class="card-body">
+          <div class="card-code">[ ROOM-04 ]</div>
+          <h3>簡報與溝通教室</h3>
+          <p>具備簡報投影等相關影音設備，磨練高階溝通技巧。</p>
+        </div>
+      </div>
+
+      <div class="card facility-card" onclick="openModal('智慧商店實驗室', '打造前瞻虛擬情境與無人零售體驗，引導學生提前掌握智慧零售與數據驅動的商業新趨勢。')">
+        <img src="https://images.unsplash.com/photo-1534452203293-494d7ddbf7e0?auto=format&fit=crop&w=800&q=80" alt="智慧商店實驗室" class="card-img">
+        <div class="card-body">
+          <div class="card-code">[ ROOM-05 ]</div>
+          <h3>智慧商店實驗室</h3>
+          <p>建置虛擬情境，讓學生提早適應無人商店與新零售概念。</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 聯絡資訊 -->
+    <h2 class="section-title" id="contact">機密聯絡與個人資料窗口</h2>
+    <div class="contact-panel">
+      <div class="contact-item">
+        <h4>📍 基地位置</h4>
+        <p>慈濟大學 經營管理學系<br>地址：花蓮市介仁街 67 號</p>
+      </div>
+      <div class="contact-item">
+        <h4>📞 聯絡電話與電郵</h4>
+        <p>電話：03-857-2677 #31682<br>公務信箱：ss62@gms.tcu.edu.tw</p>
+      </div>
+      <div class="contact-item">
+        <h4>🛡️ 個資保護窗口</h4>
+        <p>負責人：林珍如 主任<br>電話：03-857-2677 #33126<br>信箱：lih5374@gms.tcu.edu.tw</p>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>© 2026 慈濟大學 經營管理學系 版權所有 | Department of Business Management, TCU</p>
+  </footer>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="modal" onclick="closeModal(event)">
+    <div class="modal-content">
+      <span class="modal-close" onclick="closeModalDirect()">&times;</span>
+      <h3 id="modal-title" style="color: var(--gold-primary); margin-bottom: 14px; font-size: 1.5rem;"></h3>
+      <p id="modal-body" style="color: var(--text-muted); line-height: 1.8;"></p>
+    </div>
+  </div>
+
+  <script>
+    // 背景粒子特效
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    const particles = Array.from({ length: 45 }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      radius: Math.random() * 2 + 1,
+      vx: (Math.random() - 0.5) * 0.4,
+      vy: (Math.random() - 0.5) * 0.4,
+      alpha: Math.random() * 0.5 + 0.2
+    }));
+
+    function animateParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+
+        if (p.x < 0) p.x = canvas.width;
+        if (p.x > canvas.width) p.x = 0;
+        if (p.y < 0) p.y = canvas.height;
+        if (p.y > canvas.height) p.y = 0;
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(0, 243, 255, ${p.alpha})`;
+        ctx.fill();
+      });
+      requestAnimationFrame(animateParticles);
+    }
+    animateParticles();
+
+    // Modal 控制
+    function openModal(title, body) {
+      document.getElementById('modal-title').innerText = title;
+      document.getElementById('modal-body').innerText = body;
+      document.getElementById('modal').style.display = 'flex';
+    }
+
+    function closeModal(e) {
+      if (e.target.id === 'modal') {
+        document.getElementById('modal').style.display = 'none';
+      }
+    }
+
+    function closeModalDirect() {
+      document.getElementById('modal').style.display = 'none';
+    }
+
+    // ESC 鍵關閉 Modal
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeModalDirect();
+    });
+  </script>
 </body>
 </html>
