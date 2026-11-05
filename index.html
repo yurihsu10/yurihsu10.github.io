@@ -47,10 +47,26 @@ body {
       left: 0;
       width: 100vw;
       height: 100vh;
-      z-index: 0;
+      z-index: 1;
       pointer-events: none;
     }
+/* 讓粒子/星星畫布顯示在最上層 */
+#bg-canvas {
+    display: block !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: 1 !important;
+    pointer-events: none !important;
+}
 
+/* 確保卡片內容浮在粒子之上 */
+.main-card, .card, .container {
+    position: relative !important;
+    z-index: 2 !important;
+}
     /* 頂部導覽列 */
     header {
       position: fixed;
