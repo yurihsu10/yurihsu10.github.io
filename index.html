@@ -448,72 +448,93 @@ body {
   transform: translateY(-5px) !important;
   border-color: #00f3ff !important;
 }
-/* === 最終精修版：完整露出校門建築 + 精緻文字排版 + 迷你透亮卡片 === */
+/* === 一次到位版：100% 清晰原圖 + 精緻小標籤 + 迷你透明懸浮卡片 === */
 .hero {
   background-image: 
     linear-gradient(
       to bottom, 
-      rgba(5, 10, 20, 0.25) 0%,
-      rgba(5, 10, 20, 0.08) 50%,
-      rgba(5, 8, 15, 0.78) 100%
+      rgba(5, 8, 15, 0) 0%,
+      rgba(5, 8, 15, 0) 82%,
+      rgba(5, 8, 15, 0.85) 100%
     ),
     url('campus-bg.jpg') !important;
   background-size: cover !important;
-  background-position: center 55% !important; /* 鏡頭稍微往下移，完整露出校門與草地 */
+  background-position: center 52% !important;
   background-repeat: no-repeat !important;
-  padding-top: 70px !important;
-  padding-bottom: 35px !important;
-  min-height: 82vh !important; /* 稍微拉高整體畫布，讓建築物有足夠空間展現 */
+  padding-top: 65px !important;
+  padding-bottom: 28px !important;
+  min-height: 82vh !important;
   display: flex !important;
   flex-direction: column !important;
-  justify-content: space-between !important; /* 讓標題群靠上、小卡片靠下，中間空出整片山景與校門 */
+  align-items: center !important;
+  justify-content: space-between !important;
 }
 
-/* 1. 標題與副標題精緻排版 */
+/* 1. 修正上方淺藍色標籤被拉長的問題，縮回精緻小膠囊 */
+.hero > div:first-child,
+.hero .badge,
+.hero .tag,
+.hero span:first-child {
+  width: fit-content !important;
+  max-width: 90% !important;
+  align-self: center !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  padding: 6px 22px !important;
+  background: rgba(5, 15, 25, 0.55) !important;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9) !important;
+}
+
+/* 2. 原圖變超清晰後，強化文字立體陰影確保在藍天白雲前依然銳利清楚 */
 .hero h1 {
-  letter-spacing: 0.12em !important; /* 拉開字距，更有學院大氣感 */
-  margin-top: 12px !important;
-  margin-bottom: 16px !important;
+  letter-spacing: 0.12em !important;
+  margin-top: 10px !important;
+  margin-bottom: 14px !important;
   text-shadow: 
-    0 2px 10px rgba(0, 0, 0, 0.95), 
-    0 4px 25px rgba(0, 0, 0, 0.9), 
-    0 0 18px rgba(245, 195, 66, 0.45) !important;
+    0 2px 6px rgba(0, 0, 0, 1),
+    0 4px 18px rgba(0, 0, 0, 0.95), 
+    0 0 22px rgba(0, 0, 0, 0.8) !important;
 }
 
 .hero p {
-  max-width: 680px !important; /* 限制寬度，讓兩行文字長度均勻對稱，不會出現一長一短 */
-  margin: 0 auto 30px auto !important;
-  line-height: 1.85 !important;
+  max-width: 660px !important;
+  margin: 0 auto 24px auto !important;
+  line-height: 1.8 !important;
   letter-spacing: 0.05em !important;
-  font-size: 1.05rem !important;
+  font-size: 1.02rem !important;
   color: #ffffff !important;
-  font-weight: 500 !important;
+  font-weight: 600 !important;
   text-shadow: 
-    0 2px 6px rgba(0, 0, 0, 1), 
-    0 0 14px rgba(0, 0, 0, 0.95) !important;
+    0 1px 4px rgba(0, 0, 0, 1),
+    0 2px 12px rgba(0, 0, 0, 1), 
+    0 0 20px rgba(0, 0, 0, 0.95) !important;
 }
 
-/* 2. 徹底消除三個卡片外層的純黑橫條底色 */
-.hero > div,
+/* 3. 限制三個框框的整體寬度並置中，讓左右校園景色完全露出來 */
+.hero > div:last-child,
 .stats,
 .stats-grid,
 .stat-container {
   background: transparent !important;
   background-color: transparent !important;
   box-shadow: none !important;
+  width: 100% !important;
+  max-width: 680px !important;
+  margin: 0 auto !important;
+  gap: 14px !important;
 }
 
-/* 3. 把三個數據框縮小成精緻小巧的半透明磨砂卡片，不再擋住建築 */
+/* 4. 把三個數據框縮小成小巧清透的懸浮銘牌（拿掉霧面模糊，直接透出建築） */
 .stat-item {
-  background: rgba(10, 18, 30, 0.35) !important; /* 高度透明，建築物輪廓可直接穿透 */
-  backdrop-filter: blur(6px) !important;
-  -webkit-backdrop-filter: blur(6px) !important;
-  border: 1px solid rgba(245, 195, 66, 0.55) !important;
-  border-radius: 12px !important;
-  padding: 14px 20px !important; /* 大幅縮小上下內距，卡片高度減半 */
+  background: rgba(8, 12, 20, 0.48) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 1px solid rgba(245, 195, 66, 0.65) !important;
+  border-radius: 10px !important;
+  padding: 10px 14px !important;
   min-height: unset !important;
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35) !important;
-  transition: transform 0.3s ease, border-color 0.3s ease, background 0.3s ease !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45) !important;
+  transition: transform 0.25s ease, border-color 0.25s ease !important;
 }
 
 .stat-item * {
@@ -521,10 +542,25 @@ body {
   background-color: transparent !important;
 }
 
+/* 同步縮小框框內的數字與小字，配合迷你卡片比例 */
+.stat-item div:first-child,
+.stat-number {
+  font-size: 1.45rem !important;
+  margin-bottom: 2px !important;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9) !important;
+}
+
+.stat-item div:last-child,
+.stat-label {
+  font-size: 0.78rem !important;
+  color: #f0f4f8 !important;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 1) !important;
+}
+
 .stat-item:hover {
-  transform: translateY(-4px) !important;
+  transform: translateY(-3px) !important;
   border-color: #00f3ff !important;
-  background: rgba(10, 18, 30, 0.55) !important;
+  background: rgba(8, 12, 20, 0.68) !important;
 }
   </style>
 </head>
