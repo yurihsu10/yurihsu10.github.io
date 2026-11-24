@@ -562,9 +562,9 @@ body {
   border-color: #00f3ff !important;
   background: rgba(8, 12, 20, 0.68) !important;
 }
-/* === 特色實習模組：標準 Card Layout 卡片式設計與微互動 === */
+/* === 特色實習模組：分級 Card Layout（大卡完整構圖 + 小卡精緻比例） === */
 
-/* 1. 卡片外框容器：圓角、黑金細邊框、深邃外陰影與溢出裁切（讓照片放大不超框） */
+/* 1. 卡片外框容器 */
 .practice-card,
 .feature-card,
 .card {
@@ -576,19 +576,32 @@ body {
   transition: transform 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease !important;
 }
 
-/* 2. 卡片縮圖（Card Thumbnail）：統一固定高度並裁切多餘高度，解決縮圖過長問題 */
+/* 2. 預設三欄小卡片縮圖維持精緻高度 */
 .practice-card img,
 .feature-card img,
 .card img {
   width: 100% !important;
-  height: 240px !important; /* 固定為精緻的橫向縮圖比例，版面更緊湊 */
-  object-fit: cover !important; /* 自動等比例裁切，照片絕不變形 */
-  object-position: center 35% !important; /* 確保人物臉部與投影幕完整保留 */
+  height: 240px !important;
+  object-fit: cover !important;
+  object-position: center 45% !important;
   transition: transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
   display: block !important;
 }
 
-/* 3. Hover 懸停微互動：滑鼠移上卡片時，卡片微浮起、邊框轉青藍科技光、照片緩慢放大 */
+/* 3. 上方寬版核心實習大卡片（CORE PILLAR）：拉高高度並往下對焦，完整露出人物與操作桌面 */
+.pillar-card img,
+.core-card img,
+section:first-of-type .card img,
+.practice-card:first-child img,
+.card:has(img[alt*="飲品"]) img,
+.card:has(img[alt*="調酒"]) img,
+.card:has(img[alt*="戰略"]) img,
+.card:has(img[alt*="永續"]) img {
+  height: 440px !important; /* 拉高大卡圖片高度，避免人物與桌面被上下裁切 */
+  object-position: center 62% !important; /* 鏡頭稍微往下移，讓人物臉部與調酒桌完整入鏡 */
+}
+
+/* 4. Hover 懸停微互動 */
 .practice-card:hover,
 .feature-card:hover,
 .card:hover {
@@ -600,7 +613,7 @@ body {
 .practice-card:hover img,
 .feature-card:hover img,
 .card:hover img {
-  transform: scale(1.06) !important; /* 照片平滑放大 6%，不會衝出圓角外框 */
+  transform: scale(1.04) !important;
 }
   </style>
 </head>
